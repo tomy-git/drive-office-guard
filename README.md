@@ -1,2 +1,103 @@
-# anti-google-office
-GoogleドライブにおいてGoogleの各種オフィスサービスを無効化し、Microsoft Officeで作成したファイルの破壊を防ぐためのブラウザ拡張機能です。
+# Anti Google Drive Office
+
+Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによるレイアウト崩れ、フォント崩れ、SmartArt 崩れ、アニメーション消失、意図しない Google 形式への変換を防ぐためのブラウザ拡張機能です。
+
+Phase 1 では Firefox を先行対象とし、Chrome / Edge は Phase 2 で対応します。
+
+## 目的
+
+Google Drive 上の Office ファイルについて、以下の操作を制限します。
+
+- 「Google スプレッドシートで開く」
+- 「Google スライドで開く」
+- 「Google ドキュメントで開く」
+- 「新しいタブで開く」
+
+これによりOffice ファイルに対して許可する操作は、原則として以下に限定します。
+
+- Preview（プレビュー）
+- Download（ダウンロード）
+
+共有URLなどによる直接アクセスでは元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できないため、Phase 1 では安全側に倒し、設定で有効化された Google Docs / Sheets / Slides エディタ URL への直接アクセスもサービス単位で制限します。
+
+## 対象ブラウザ
+
+| ブラウザ        | 対応方針    |
+| --------------- | ----------- |
+| Mozilla Firefox | Phase 1 MVP |
+| Google Chrome   | Phase 2     |
+| Microsoft Edge  | Phase 2     |
+
+## 主な機能
+
+- Google Drive のメニュー項目を視覚的に無効化
+- `docs.google.com/spreadsheets/*` のブロック
+- `docs.google.com/presentation/*` のブロック
+- `docs.google.com/document/*` のブロック
+- ブロック時の説明ページ表示
+- Sheets / Slides / Docs の個別ブロック設定
+- `storage.managed` による管理ポリシー読み取り
+- Google Drive 仕様変更検知時のフェイルセーフ通知
+
+## 実装方針
+
+Firefox の Manifest V3 を先行実装とし、background は `background.scripts` を使用します。URL ブロックは `declarativeNetRequest` の Dynamic Rules を使い、設定変更時に有効なルールを同期します。
+
+Google Drive の GUI 変更に追従しやすくするため、Drive DOM への依存は以下に分離します。
+
+- `drive-menu-guard.ts`: 初期化、設定読み込み、監視開始、無効化適用
+- `drive-dom-adapter.ts`: Drive DOM からメニュー項目、選択ファイル、表示テキストを抽出
+- `drive-patterns.ts`: UI 文言、role、aria 属性、URL path、拡張子などの判定パターン
+
+新しい Drive UI パターンが見つかった場合は fixture と抽出テストを追加し、本体ロジックへ DOM 依存を広げない方針です。
+
+## 設定
+
+初期値は安全側に倒し、すべて有効とします。
+
+```json
+{
+  "blockSheets": true,
+  "blockSlides": true,
+  "blockDocs": true
+}
+```
+
+個人利用時は `browser.storage.sync` を使用します。Enterprise 利用時は `storage.managed` を優先し、管理ポリシーに存在するキーはユーザー設定で上書きできない設計とします。
+
+## Enterprise 配布
+
+Firefox Enterprise では、native manifest または `3rdparty` enterprise policy による managed storage 配布を検討します。
+
+Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先行実装の共通ロジックを移植します。
+
+## 制限事項
+
+ブラウザ拡張単体では完全な防止策にはなりません。以下は回避可能です。
+
+- 拡張機能の無効化
+- 別ブラウザの利用
+- curl / API によるアクセス
+- 管理外端末からのアクセス
+
+厳密に強制する場合は、Firefox Enterprise、Chrome Enterprise、Edge for Business、MDM、Endpoint 管理、DLP などの併用が必要です。
+
+## 開発ステータス
+
+現在は設計段階です。実装は以下の順で進めます。
+
+1. Firefox 向け Drive menu item disable
+2. Firefox 向け `docs.google.com` block
+3. block page
+4. Firefox 対応版のパッケージ化
+5. 管理ポリシーと Options Page
+6. Drive GUI パターン fixture と DOM adapter の単体テスト
+7. Chrome / Edge への移植方針整理
+
+## ライセンス
+
+ライセンス候補は MPL 2.0 です。
+
+## 設計書
+
+詳細は [anti-google-office_design.md](./anti-google-office_design.md) を参照してください。
