@@ -1,0 +1,2 @@
+# anti-google-office
+GoogleドライブにおいてGoogleの各種オフィスサービスを無効化し、Microsoft Officeで作成したファイルの破壊を防ぐためのブラウザ拡張機能です。
