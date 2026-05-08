@@ -693,10 +693,7 @@ Chrome / Edge で差し替えるものは以下に限定する。
 
   "permissions": ["storage", "declarativeNetRequest"],
 
-  "host_permissions": [
-    "https://drive.google.com/*",
-    "https://docs.google.com/*"
-  ],
+  "host_permissions": ["https://drive.google.com/*", "https://docs.google.com/*"],
 
   "background": {
     "scripts": ["background-firefox.js"],
@@ -1070,6 +1067,26 @@ Chrome / Edge への移植方針を整理する。
 - `storage.managed` の読み取り対応
 - Drive DOM adapter / pattern 分離
 - Drive GUI パターン fixture と抽出テスト
+
+### Phase 1 MVP 進捗
+
+- [x] Firefox MV3 向け `manifest.firefox.json` を追加
+- [x] Vite / TypeScript / ESLint / Prettier / Vitest 設定を追加
+- [x] `storage.managed` 優先、未指定キーは sync/default へ fallback する設定処理を追加
+- [x] DNR dynamic rules で rule id 1001/1002/1003 を使うルール生成を追加
+- [x] Firefox background で install/startup/storage 変更時の DNR 同期を追加
+- [x] Drive 固有文言・判定を `drive-patterns.ts` に集約
+- [x] Drive DOM adapter と Drive menu guard を追加
+- [x] `innerHTML`、`pointer-events: none`、DOM 要素削除を使わない無効化処理を追加
+- [x] block page を追加
+- [x] Options Page を追加
+- [x] Drive fixture と adapter/rules/config の単体テストを追加
+- [x] README の実装手順と設計書リンクを更新
+- [x] レビュー指摘に基づき、Content Script fallback の managed 優先解決と無効化状態の復元を追加
+
+未実施:
+
+- [ ] Firefox 実機で `dist/manifest.json` を一時アドオンとして読み込み、DNR redirect と Options Page を確認する
 
 ---
 

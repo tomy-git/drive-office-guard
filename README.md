@@ -82,17 +82,47 @@ Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先�
 
 厳密に強制する場合は、Firefox Enterprise、Chrome Enterprise、Edge for Business、MDM、Endpoint 管理、DLP などの併用が必要です。
 
+## 開発手順
+
+前提:
+
+- Node.js 20 以上
+- npm
+
+セットアップ:
+
+```bash
+npm install
+```
+
+検証:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format
+npm test
+npm run build
+```
+
+Firefox での手動確認:
+
+1. `npm run build` を実行する。
+2. Firefox で `about:debugging#/runtime/this-firefox` を開く。
+3. `dist/manifest.json` を一時的なアドオンとして読み込む。
+4. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+
 ## 開発ステータス
 
-現在は設計段階です。実装は以下の順で進めます。
+Phase 1 MVP の Firefox 実装を追加済みです。Firefox 実機での一時アドオン読み込みと DNR redirect の手動確認は未実施です。
 
-1. Firefox 向け Drive menu item disable
-2. Firefox 向け `docs.google.com` block
-3. block page
-4. Firefox 対応版のパッケージ化
-5. 管理ポリシーと Options Page
-6. Drive GUI パターン fixture と DOM adapter の単体テスト
-7. Chrome / Edge への移植方針整理
+- Drive メニュー項目の視覚的無効化
+- `docs.google.com` block
+- block page
+- Firefox 対応版のパッケージ化
+- 管理ポリシーと Options Page
+- Drive GUI パターン fixture と DOM adapter の単体テスト
+- Chrome / Edge への移植方針整理は Phase 2 対象
 
 ## ライセンス
 
@@ -100,4 +130,4 @@ Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先�
 
 ## 設計書
 
-詳細は [anti-google-office_design.md](./anti-google-office_design.md) を参照してください。
+詳細は [anti-google-office_design.md](./docs/anti-google-office_design.md) を参照してください。
