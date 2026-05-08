@@ -28,10 +28,21 @@ const PREVIOUS_OPACITY_KEY = "antiGoogleOfficePreviousOpacity";
 const PREVIOUS_BACKGROUND_KEY = "antiGoogleOfficePreviousBackground";
 const PREVIOUS_CURSOR_KEY = "antiGoogleOfficePreviousCursor";
 const DEBOUNCE_MS = 100;
+const BLOCKED_EVENTS = [
+  "pointerdown",
+  "mousedown",
+  "mouseup",
+  "click",
+  "dblclick",
+  "auxclick",
+  "keydown",
+  "keyup",
+] as const;
 
 let cachedSettings: GuardSettings = DEFAULT_GUARD_SETTINGS;
 let debounceTimer: number | undefined;
 let observer: MutationObserver | undefined;
+let globalEventBlockerInstalled = false;
 
 async function readSettings(): Promise<GuardSettings> {
   try {
@@ -104,8 +115,9 @@ function disableMenuItem(element: HTMLElement): void {
   suffix.style.fontWeight = "400";
   element.appendChild(suffix);
 
-  element.addEventListener("click", stopBlockedEvent, true);
-  element.addEventListener("keydown", stopBlockedEvent, true);
+  for (const eventName of BLOCKED_EVENTS) {
+    element.addEventListener(eventName, stopBlockedEvent, true);
+  }
 }
 
 function restoreMenuItem(element: HTMLElement): void {
@@ -121,8 +133,9 @@ function restoreMenuItem(element: HTMLElement): void {
   element
     .querySelectorAll(":scope > .anti-google-office-disabled-label")
     .forEach((suffix) => suffix.remove());
-  element.removeEventListener("click", stopBlockedEvent, true);
-  element.removeEventListener("keydown", stopBlockedEvent, true);
+  for (const eventName of BLOCKED_EVENTS) {
+    element.removeEventListener(eventName, stopBlockedEvent, true);
+  }
   delete element.dataset[DISABLED_DATA_KEY];
   delete element.dataset[PREVIOUS_ARIA_DISABLED_KEY];
   delete element.dataset[PREVIOUS_TABINDEX_KEY];
@@ -167,6 +180,39 @@ function stopBlockedEvent(event: Event): void {
   event.stopImmediatePropagation();
 }
 
+function stopDisabledMenuEvent(event: Event): void {
+  if (!(event.target instanceof Element)) {
+    return;
+  }
+
+  const disabledElement = event.target.closest<HTMLElement>(
+    `[data-${toKebabCase(DISABLED_DATA_KEY)}="true"]`,
+  );
+
+  if (!disabledElement) {
+    return;
+  }
+
+  stopBlockedEvent(event);
+}
+
+function installGlobalEventBlocker(): void {
+  if (globalEventBlockerInstalled) {
+    return;
+  }
+
+  globalEventBlockerInstalled = true;
+
+  for (const eventName of BLOCKED_EVENTS) {
+    window.addEventListener(eventName, stopDisabledMenuEvent, true);
+    document.addEventListener(eventName, stopDisabledMenuEvent, true);
+  }
+}
+
+function toKebabCase(value: string): string {
+  return value.replace(/[A-Z]/g, (character) => `-${character.toLowerCase()}`);
+}
+
 function notifySpecChange(): void {
   if (document.body.dataset[NOTICE_DATA_KEY] === "true") {
     return;
@@ -208,6 +254,7 @@ export function initializeGuard(): void {
     subtree: true,
   });
 
+  installGlobalEventBlocker();
   scheduleApplyGuard();
 }
 

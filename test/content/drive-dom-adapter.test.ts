@@ -86,4 +86,16 @@ describe("drive-dom-adapter", () => {
     expect(matchesBlockedAction(signal, DEFAULT_GUARD_SETTINGS)).toBe("sheets");
     expect(shouldDisableSignal(signal, DEFAULT_GUARD_SETTINGS)).toBe(true);
   });
+
+  it("共有ホームの拡張子がない Office 種別表示から対象ファイルを補完する", () => {
+    const root = loadFixture("shared-home-menu.html");
+
+    const slideItem = findActionableItems(root)[0];
+    const signal = extractDriveSignal(slideItem);
+
+    expect(signal.fileName).toContain("Microsoft PowerPoint");
+    expect(getOfficeFileKind(signal)).toBe("pptx");
+    expect(matchesBlockedAction(signal, DEFAULT_GUARD_SETTINGS)).toBe("slides");
+    expect(shouldDisableSignal(signal, DEFAULT_GUARD_SETTINGS)).toBe(true);
+  });
 });

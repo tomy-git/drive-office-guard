@@ -14,11 +14,26 @@ const MENU_CANDIDATE_SELECTOR = [
 
 const FILE_CONTEXT_SELECTOR = [
   '[aria-selected="true"]',
+  '[aria-current="true"]',
   '[data-is-selected="true"]',
+  '[data-selected="true"]',
+  '[data-selection-target="true"]',
   "[data-target-file]",
   "[data-file-name]",
+  "[data-tooltip*='Microsoft']",
+  "[data-tooltip*='PowerPoint']",
+  "[data-tooltip*='Excel']",
+  "[data-tooltip*='Word']",
   '[aria-label*="."]',
+  '[aria-label*="Microsoft"]',
+  '[aria-label*="PowerPoint"]',
+  '[aria-label*="Excel"]',
+  '[aria-label*="Word"]',
   '[title*="."]',
+  '[title*="Microsoft"]',
+  '[title*="PowerPoint"]',
+  '[title*="Excel"]',
+  '[title*="Word"]',
 ].join(",");
 
 export function getMenuCandidates(root: ParentNode = document): HTMLElement[] {
@@ -111,6 +126,7 @@ function findDocumentSelectedFileName(element: HTMLElement): string | undefined 
       fileName:
         candidate.dataset.targetFile ??
         candidate.dataset.fileName ??
+        candidate.dataset.tooltip ??
         candidate.getAttribute("aria-label") ??
         candidate.getAttribute("title") ??
         undefined,

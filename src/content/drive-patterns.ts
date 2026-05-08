@@ -23,10 +23,39 @@ export const MAX_MENU_CANDIDATES = 200;
 const OFFICE_EXTENSION_KIND: Record<string, OfficeFileKind> = {
   xlsx: "xlsx",
   xlsm: "xlsx",
+  xls: "xlsx",
   pptx: "pptx",
   pptm: "pptx",
+  ppt: "pptx",
   docx: "docx",
   docm: "docx",
+  doc: "docx",
+};
+
+const OFFICE_KIND_PATTERNS: Record<OfficeFileKind, RegExp[]> = {
+  xlsx: [
+    /\.xls[xm]?\b/i,
+    /microsoft\s+excel/i,
+    /excel\s+(spreadsheet|workbook)/i,
+    /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/i,
+    /application\/vnd\.ms-excel/i,
+  ],
+  pptx: [
+    /\.ppt[xm]?\b/i,
+    /microsoft\s+power\s*point/i,
+    /microsoft\s+powerpoint/i,
+    /power\s*point\s+presentation/i,
+    /powerpoint\s+presentation/i,
+    /application\/vnd\.openxmlformats-officedocument\.presentationml\.presentation/i,
+    /application\/vnd\.ms-powerpoint/i,
+  ],
+  docx: [
+    /\.doc[xm]?\b/i,
+    /microsoft\s+word/i,
+    /word\s+document/i,
+    /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/i,
+    /application\/msword/i,
+  ],
 };
 
 const BLOCKED_ACTION_PATTERNS: Record<BlockedActionKind, RegExp[]> = {
@@ -79,11 +108,21 @@ export function getOfficeFileKind(signal: DriveDomSignal): OfficeFileKind | null
   const text = getSignalText(signal);
   const match = text.match(/\.([a-z0-9]{3,4})(?:\b|$)/i);
 
-  if (!match) {
-    return null;
+  if (match) {
+    const extensionKind = OFFICE_EXTENSION_KIND[match[1].toLowerCase()];
+
+    if (extensionKind) {
+      return extensionKind;
+    }
   }
 
-  return OFFICE_EXTENSION_KIND[match[1].toLowerCase()] ?? null;
+  for (const [kind, patterns] of Object.entries(OFFICE_KIND_PATTERNS)) {
+    if (patterns.some((pattern) => pattern.test(text))) {
+      return kind as OfficeFileKind;
+    }
+  }
+
+  return null;
 }
 
 export function matchesBlockedAction(
