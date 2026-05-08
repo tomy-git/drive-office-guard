@@ -1,13 +1,14 @@
 {
   "name": "anti-google-office",
   "version": "0.1.0",
-  "description": "Firefox WebExtension that prevents Google Drive from opening Microsoft Office files in Google editors and breaking their layout.",
+  "description": "Firefox WebExtension that prevents Google Drive from opening Microsoft Office files in Google Docs, Sheets, or Slides and breaking their layout.",
   "type": "module",
   "scripts": {
-    "build": "npm run clean && npm run build:background && npm run build:content && npm run build:options && npm run copy:assets",
+    "build": "npm run clean && npm run build:background && npm run build:content && npm run build:options && npm run build:blocked && npm run copy:assets",
     "build:background": "BUILD_ENTRY=background-firefox vite build",
     "build:content": "BUILD_ENTRY=drive-menu-guard vite build",
     "build:options": "BUILD_ENTRY=options vite build",
+    "build:blocked": "BUILD_ENTRY=blocked vite build",
     "clean": "node scripts/clean-dist.mjs",
     "copy:assets": "node scripts/copy-extension-assets.mjs",
     "lint": "eslint .",

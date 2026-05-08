@@ -4,7 +4,7 @@
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによる以下の問題を防止するためのブラウザ拡張機能を開発する。
 Phase 1 は Firefox を先行対象とする。
-安全側に倒し、設定で有効化された Google Docs / Sheets / Slides エディタへの直接アクセスもサービス単位で制限する。
+安全側に倒し、設定で有効化された Google Docs / Sheets / Slides への直接アクセスもサービス単位で制限する。
 
 - フォント崩れ
 - レイアウト崩れ
@@ -49,9 +49,9 @@ Google Docs 系 URL の直接アクセスを禁止する。
 - `docs.google.com/document/*`
 
 直接アクセス時点では元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できない。
-そのため、URL ブロックは設定で有効なサービス単位で `docs.google.com` のエディタ URL 全体に適用する。
+そのため、URL ブロックは設定で有効なサービス単位で `docs.google.com` の URL 全体に適用する。
 Google ネイティブ形式の利用を許可する例外要件は、Phase 2 のホワイトリストまたは管理ポリシーで扱う。
-このため、Phase 1 の製品方針は「Office ファイル保護を主目的としつつ、設定対象サービスの Google エディタ起動自体を禁止する」と定義する。
+このため、Phase 1 の製品方針は「Office ファイル保護を主目的としつつ、設定対象の Google Docs / Sheets / Slides 起動自体を禁止する」と定義する。
 
 Office ファイルは以下のみ許可する。
 
@@ -199,7 +199,7 @@ Google Drive の GUI 変更時は、原則として `drive-dom-adapter.ts` と `
 - 新しいタブで開く
 
 ただし、Google スプレッドシート / Google スライド / Google ドキュメントは設定により個別に ON/OFF できる。
-「新しいタブで開く」は、Office ファイルを Google Docs 系エディタで開く導線になり得るため、Office ファイルを操作している場合は常時無効化対象とする。
+「新しいタブで開く」は、Office ファイルを Google Docs / Sheets / Slides で開く導線になり得るため、Office ファイルを操作している場合は常時無効化対象とする。
 Office ファイル以外の Drive 操作では無効化しない。
 
 UI 上では該当項目を完全に消さず、以下のように視覚的に無効化する。
@@ -266,7 +266,7 @@ blocked.html
 表示文言例：
 
 ```text
-この組織では、Google Docs / Sheets / Slides エディタの利用を制限しています。
+この組織では、Google Docs / Sheets / Slides の利用を制限しています。
 
 Drive の「プレビュー」または「ダウンロード」を使用してください。
 ```
@@ -365,6 +365,7 @@ type GuardSettings = {
   blockSheets: boolean;
   blockSlides: boolean;
   blockDocs: boolean;
+  hideDisabledLabel: boolean;
 };
 
 type OfficeFileKind = "xlsx" | "pptx" | "docx";
@@ -534,7 +535,8 @@ function isBlockedUrl(url: string): boolean {
 
 Background Script は `tabs.update` を主制御にしない。
 Firefox Phase 1 では DNR の `redirect` ルールを正とし、Background Script は設定変更に応じて動的ルールを更新する。
-Block Page は Phase 1 では静的な説明ページとし、URL 別の理由表示や監査ログは Phase 3 で扱う。
+Block Page は Phase 1 では設定に基づき、現在制限中の Google Docs / Sheets / Slides だけを表示する。
+URL 別の理由表示や監査ログは Phase 3 で扱う。
 
 動的ルール更新例：
 
@@ -751,12 +753,13 @@ Phase 1 で Options Page を追加する。
 
 設定例：
 
-| 設定        | 内容                                | Phase |
-| ----------- | ----------------------------------- | ----- |
-| blockSheets | Google スプレッドシートを無効化する | 1     |
-| blockSlides | Google スライドを無効化する         | 1     |
-| blockDocs   | Google ドキュメントを無効化する     | 1     |
-| allowRules  | 例外許可ルール                      | 2     |
+| 設定              | 内容                                                             | Phase |
+| ----------------- | ---------------------------------------------------------------- | ----- |
+| blockSheets       | Google スプレッドシートを無効化する                              | 1     |
+| blockSlides       | Google スライドを無効化する                                      | 1     |
+| blockDocs         | Google ドキュメントを無効化する                                  | 1     |
+| hideDisabledLabel | 「拡張機能により無効化」の括弧書きを表示せずグレーアウトのみ行う | 1     |
+| allowRules        | 例外許可ルール                                                   | 2     |
 
 設定保存には以下を使用する。
 
@@ -770,7 +773,8 @@ browser.storage.sync;
 {
   "blockSheets": true,
   "blockSlides": true,
-  "blockDocs": true
+  "blockDocs": true,
+  "hideDisabledLabel": false
 }
 ```
 

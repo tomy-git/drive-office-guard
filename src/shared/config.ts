@@ -1,6 +1,10 @@
 import browser from "webextension-polyfill";
 
-export type ConfigKey = "blockSheets" | "blockSlides" | "blockDocs";
+export type ConfigKey =
+  | "blockSheets"
+  | "blockSlides"
+  | "blockDocs"
+  | "hideDisabledLabel";
 
 export type GuardSettings = Record<ConfigKey, boolean>;
 
@@ -13,9 +17,15 @@ export const DEFAULT_GUARD_SETTINGS: GuardSettings = {
   blockSheets: true,
   blockSlides: true,
   blockDocs: true,
+  hideDisabledLabel: false,
 };
 
-const CONFIG_KEYS: ConfigKey[] = ["blockSheets", "blockSlides", "blockDocs"];
+const CONFIG_KEYS: ConfigKey[] = [
+  "blockSheets",
+  "blockSlides",
+  "blockDocs",
+  "hideDisabledLabel",
+];
 
 type RawConfig = Partial<Record<ConfigKey, unknown>>;
 

@@ -79,7 +79,7 @@ async function applyGuard(): Promise<void> {
     const signal = extractDriveSignal(element);
 
     if (shouldDisableSignal(signal, cachedSettings)) {
-      disableMenuItem(element);
+      disableMenuItem(element, cachedSettings);
     }
   }
 }
@@ -94,7 +94,7 @@ function scheduleApplyGuard(): void {
   }, DEBOUNCE_MS);
 }
 
-function disableMenuItem(element: HTMLElement): void {
+function disableMenuItem(element: HTMLElement, settings: GuardSettings): void {
   if (element.dataset[DISABLED_DATA_KEY] === "true") {
     return;
   }
@@ -107,13 +107,15 @@ function disableMenuItem(element: HTMLElement): void {
   element.style.backgroundColor = "rgba(0, 0, 0, 0.06)";
   element.style.cursor = "not-allowed";
 
-  const suffix = document.createElement("span");
-  suffix.textContent = DISABLED_SUFFIX;
-  suffix.className = "anti-google-office-disabled-label";
-  suffix.style.marginLeft = "8px";
-  suffix.style.fontSize = "0.85em";
-  suffix.style.fontWeight = "400";
-  element.appendChild(suffix);
+  if (!settings.hideDisabledLabel) {
+    const suffix = document.createElement("span");
+    suffix.textContent = DISABLED_SUFFIX;
+    suffix.className = "anti-google-office-disabled-label";
+    suffix.style.marginLeft = "8px";
+    suffix.style.fontSize = "0.85em";
+    suffix.style.fontWeight = "400";
+    element.appendChild(suffix);
+  }
 
   for (const eventName of BLOCKED_EVENTS) {
     element.addEventListener(eventName, stopBlockedEvent, true);

@@ -74,7 +74,6 @@
       }
 
       button {
-        justify-self: start;
         margin-top: 8px;
         border: 0;
         border-radius: 6px;
@@ -85,15 +84,62 @@
         cursor: pointer;
       }
 
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .secondary {
+        background: #ffffff;
+        color: #1f2937;
+        border: 1px solid #d0d5dd;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
       button:disabled {
         opacity: 0.55;
         cursor: not-allowed;
       }
 
-      [role="status"] {
-        min-height: 24px;
-        margin-top: 16px;
+      .toast {
+        position: fixed;
+        inset-block-start: 20px;
+        inset-inline-end: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        max-width: min(420px, calc(100vw - 40px));
+        padding: 14px 16px;
+        border: 1px solid #abefc6;
+        border-radius: 8px;
+        background: #ecfdf3;
         color: #067647;
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+      }
+
+      .toast[data-kind="error"] {
+        border-color: #fecdca;
+        background: #fef3f2;
+        color: #b42318;
+      }
+
+      .toast p {
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .toast button {
+        margin: -4px -6px -4px 0;
+        padding: 4px 8px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 1.1rem;
+        line-height: 1;
       }
     </style>
   </head>
@@ -101,7 +147,7 @@
     <main>
       <h1>Office Breakage Blocker for Google Drive 設定</h1>
       <p class="lead">
-        Google Drive から起動する Google エディタと、docs.google.com
+        Google Drive から起動する各種 Google のオフィススイート製品と、docs.google.com
         への直接アクセスをサービス単位で制限します。
       </p>
       <form id="options-form">
@@ -109,7 +155,7 @@
           <input type="checkbox" name="blockSheets" />
           <span>
             <strong>Google スプレッドシートを制限</strong>
-            <small>Excel ファイルを Google Sheets で開く導線を無効化します。</small>
+            <small>Excel ファイルを Google Sheets で開く機能を無効化します。</small>
           </span>
         </label>
         <label>
@@ -117,7 +163,7 @@
           <span>
             <strong>Google スライドを制限</strong>
             <small
-              >PowerPoint ファイルを Google Slides で開く導線を無効化します。</small
+              >PowerPoint ファイルを Google Slides で開く機能を無効化します。</small
             >
           </span>
         </label>
@@ -125,13 +171,33 @@
           <input type="checkbox" name="blockDocs" />
           <span>
             <strong>Google ドキュメントを制限</strong>
-            <small>Word ファイルを Google Docs で開く導線を無効化します。</small>
+            <small>Word ファイルを Google Docs で開く機能を無効化します。</small>
           </span>
         </label>
-        <button type="submit">保存</button>
+        <label>
+          <input type="checkbox" name="hideDisabledLabel" />
+          <span>
+            <strong>無効化理由の括弧書きを非表示</strong>
+            <small>
+              Google Drive
+              のメニュー上ではグレーアウトだけを行い、「拡張機能により無効化」の表示を追加しません。
+            </small>
+          </span>
+        </label>
+        <div class="actions">
+          <button type="submit">保存</button>
+          <button class="secondary" id="cancel-button" type="button" hidden>
+            キャンセル
+          </button>
+        </div>
       </form>
-      <p id="options-status" role="status" aria-live="polite"></p>
     </main>
+    <div class="toast" id="options-toast" role="status" aria-live="polite" hidden>
+      <p id="options-toast-message"></p>
+      <button id="options-toast-close" type="button" aria-label="通知を閉じる">
+        ×
+      </button>
+    </div>
     <script src="options.js"></script>
   </body>
 </html>

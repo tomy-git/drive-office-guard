@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 const entries = {
   "background-firefox": "src/background/background-firefox.ts",
   "drive-menu-guard": "src/content/drive-menu-guard.ts",
+  blocked: "src/pages/blocked.ts",
   options: "src/options/options.ts",
 } as const;
 

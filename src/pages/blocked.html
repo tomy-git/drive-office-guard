@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Google エディタは制限されています</title>
+    <title>Google Drive上での直接編集は制限されています</title>
     <style>
       :root {
         color-scheme: light;
@@ -44,16 +44,26 @@
         font-size: 1rem;
         line-height: 1.7;
       }
+
+      ul {
+        margin: 12px 0 16px;
+        padding-inline-start: 24px;
+        line-height: 1.7;
+      }
     </style>
   </head>
   <body>
     <main>
-      <h1>Google Docs / Sheets / Slides エディタは制限されています</h1>
+      <h1>Google のオフィススイート製品は制限されています</h1>
       <p>
-        この組織では、Microsoft Office ファイルの互換性を守るため、設定された Google
-        エディタの利用を制限しています。
+        この組織では、Microsoft Office ファイルの互換性を守るため、以下の Google Docs /
+        Sheets / Slides の利用を制限しています。
       </p>
+      <ul id="blocked-services" aria-live="polite">
+        <li>制限対象を確認しています。</li>
+      </ul>
       <p>Google Drive の「プレビュー」または「ダウンロード」を使用してください。</p>
     </main>
+    <script src="blocked.js"></script>
   </body>
 </html>

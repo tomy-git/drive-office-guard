@@ -17,6 +17,7 @@ const DEFAULT_GUARD_SETTINGS = {
   blockSheets: true,
   blockSlides: true,
   blockDocs: true,
+  hideDisabledLabel: false,
 };
 
 function loadFixture(name: string): HTMLElement {
@@ -44,7 +45,7 @@ describe("drive-dom-adapter", () => {
     expect(shouldDisableSignal(signal, DEFAULT_GUARD_SETTINGS)).toBe(true);
   });
 
-  it("設定で無効な Google エディタ操作は無効化対象にしない", () => {
+  it("設定で無効な Google Docs / Sheets / Slides 操作は無効化対象にしない", () => {
     const root = loadFixture("office-menu.html");
 
     const slideItem = findActionableItems(root)[0];
@@ -52,9 +53,8 @@ describe("drive-dom-adapter", () => {
 
     expect(
       shouldDisableSignal(signal, {
-        blockSheets: true,
+        ...DEFAULT_GUARD_SETTINGS,
         blockSlides: false,
-        blockDocs: true,
       }),
     ).toBe(false);
   });
@@ -68,6 +68,7 @@ describe("drive-dom-adapter", () => {
     expect(matchesBlockedAction(signal)).toBe("new-tab");
     expect(
       shouldDisableSignal(signal, {
+        ...DEFAULT_GUARD_SETTINGS,
         blockSheets: false,
         blockSlides: false,
         blockDocs: false,

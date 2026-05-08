@@ -18,7 +18,7 @@ Google Drive 上の Office ファイルについて、以下の操作を制限�
 - Preview（プレビュー）
 - Download（ダウンロード）
 
-共有URLなどによる直接アクセスでは元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できないため、Phase 1 では安全側に倒し、設定で有効化された Google Docs / Sheets / Slides エディタ URL への直接アクセスもサービス単位で制限します。
+共有URLなどによる直接アクセスでは元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できないため、Phase 1 では安全側に倒し、設定で有効化された Google Docs / Sheets / Slides の URL への直接アクセスもサービス単位で制限します。
 
 ## 対象ブラウザ
 
@@ -34,7 +34,7 @@ Google Drive 上の Office ファイルについて、以下の操作を制限�
 - `docs.google.com/spreadsheets/*` のブロック
 - `docs.google.com/presentation/*` のブロック
 - `docs.google.com/document/*` のブロック
-- ブロック時の説明ページ表示
+- ブロック時に、現在制限中の Google Docs / Sheets / Slides だけを表示する説明ページ
 - Sheets / Slides / Docs の個別ブロック設定
 - `storage.managed` による管理ポリシー読み取り
 - Google Drive 仕様変更検知時のフェイルセーフ通知
@@ -59,9 +59,12 @@ Google Drive の GUI 変更に追従しやすくするため、Drive DOM への�
 {
   "blockSheets": true,
   "blockSlides": true,
-  "blockDocs": true
+  "blockDocs": true,
+  "hideDisabledLabel": false
 }
 ```
+
+`hideDisabledLabel` を `true` にすると、Google Drive のメニュー上ではグレーアウトだけを行い、「拡張機能により無効化」の括弧書きを追加しません。
 
 個人利用時は `browser.storage.sync` を使用します。Enterprise 利用時は `storage.managed` を優先し、管理ポリシーに存在するキーはユーザー設定で上書きできない設計とします。
 

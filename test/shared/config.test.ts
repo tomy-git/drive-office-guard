@@ -27,10 +27,12 @@ describe("config", () => {
         blockSheets: false,
         blockSlides: "false",
         blockDocs: true,
+        hideDisabledLabel: true,
       }),
     ).toEqual({
       blockSheets: false,
       blockDocs: true,
+      hideDisabledLabel: true,
     });
   });
 
@@ -42,6 +44,7 @@ describe("config", () => {
         ...DEFAULT_GUARD_SETTINGS,
         blockSheets: false,
         blockSlides: true,
+        hideDisabledLabel: false,
       },
       managedKeys: ["blockSlides"],
     });

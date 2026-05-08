@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { DNR_RULE_IDS, buildDnrRules, isBlockedUrl } from "../../src/shared/dnr-rules";
 
+const DEFAULT_GUARD_SETTINGS = {
+  blockSheets: true,
+  blockSlides: true,
+  blockDocs: true,
+  hideDisabledLabel: false,
+};
+
 describe("dnr-rules", () => {
   it("Phase1 の dynamic rule id 1001/1002/1003 を固定で使う", () => {
     expect(DNR_RULE_IDS).toEqual([1001, 1002, 1003]);
@@ -9,6 +16,7 @@ describe("dnr-rules", () => {
 
   it("設定で有効なサービスだけ DNR redirect ルールを生成する", () => {
     const rules = buildDnrRules({
+      ...DEFAULT_GUARD_SETTINGS,
       blockSheets: true,
       blockSlides: false,
       blockDocs: true,
@@ -29,6 +37,7 @@ describe("dnr-rules", () => {
 
   it("docs.google.com の対象 path のみをブロック判定する", () => {
     const settings = {
+      ...DEFAULT_GUARD_SETTINGS,
       blockSheets: true,
       blockSlides: false,
       blockDocs: true,
