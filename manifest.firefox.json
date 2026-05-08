@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Drive Office Guard",
+  "name": "Office Breakage Blocker for Google Drive",
   "version": "0.1.0",
-  "description": "Prevents configured Google Docs editors from opening Microsoft Office files from Google Drive.",
+  "description": "Prevents Google Drive from opening Microsoft Office files in Google editors and breaking their layout.",
   "permissions": ["storage", "declarativeNetRequest"],
   "host_permissions": ["https://drive.google.com/*", "https://docs.google.com/*"],
   "background": {

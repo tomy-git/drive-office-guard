@@ -1,4 +1,4 @@
-# anti-google-office 設計方針書
+# Office Breakage Blocker for Google Drive 設計方針書
 
 ## 概要
 
@@ -688,7 +688,7 @@ Chrome / Edge で差し替えるものは以下に限定する。
 ```json
 {
   "manifest_version": 3,
-  "name": "Drive Office Guard",
+  "name": "Office Breakage Blocker for Google Drive",
   "version": "0.1.0",
 
   "permissions": ["storage", "declarativeNetRequest"],
@@ -1149,7 +1149,7 @@ Office ファイルは以下の状態を実現する。
 また、独自ドメインの Google Workspace 環境でも利用できるよう、メールドメインに依存せず Google Drive / docs.google.com の挙動を基準に制御する。
 さらに、Google Drive の仕様変更を検知した場合は DOM 変更を停止し、画面上に通知を表示することで、安全性と保守性を優先する。
 
-Drive Office Guard は、Google Drive の利便性を維持しつつ、Microsoft Office ファイルを Google Docs / Sheets / Slides で開くことによる互換性破壊を防ぐための WebExtensions ベースのブラウザ拡張機能である。
+Office Breakage Blocker for Google Drive は、Google Drive の利便性を維持しつつ、Microsoft Office ファイルを Google Docs / Sheets / Slides で開くことによる互換性破壊を防ぐための WebExtensions ベースのブラウザ拡張機能である。
 
 特に以下を重視する。
 
