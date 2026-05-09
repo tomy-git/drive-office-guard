@@ -78,6 +78,7 @@ npm run typecheck
 npm run lint
 npm run format
 npm run build
+npm run build:chrome
 ```
 
 各コマンドの用途は以下の通り。
@@ -85,7 +86,8 @@ npm run build
 - `npm run typecheck`: アプリ、テスト、設定ファイルの TypeScript 型チェック
 - `npm run lint`: ESLint による静的解析
 - `npm run format`: Prettier のフォーマット確認
-- `npm run build`: Firefox 拡張として配布する `dist/` の生成確認
+- `npm run build`: Firefox 拡張として配布する `dist/firefox/` の生成確認
+- `npm run build:chrome`: Chrome 拡張として配布する `dist/chrome/` の生成確認
 
 Pull Request 作成前にリポジトリ全体の品質ゲートを確認する場合は、以下を実行する。
 
@@ -96,7 +98,33 @@ npm run format
 npm test
 npm run test:coverage
 npm run build
+npm run build:chrome
 ```
+
+Firefox 向けアドオン ZIP まで確認する場合は、以下を実行する。
+
+```bash
+npm run package:firefox
+```
+
+生成された `web-ext-artifacts/firefox-addon.zip` は GitHub Actions の `package-firefox` job と同じ出力である。CI では `pull_request` と `main` への push ごとに artifact として保存する。
+
+Chrome 向け拡張 ZIP まで確認する場合は、以下を実行する。
+
+```bash
+npm run package:chrome
+```
+
+生成された `web-ext-artifacts/chrome-extension.zip` は GitHub Actions の `package-chrome` job と同じ出力である。CI では `pull_request` と `main` への push ごとに artifact として保存する。
+
+ストア送信や GitHub Release への ZIP 添付は今後の検討対象とする。`v*` タグまたは手動実行の GitHub Actions では Firefox / Chrome の release job を定義するが、現時点では placeholder として成功するだけで、外部サービスへの送信は行わない。
+
+```bash
+npm run publish:firefox:listed
+npm run publish:chrome
+```
+
+`publish:firefox:listed` と `publish:chrome` は、リリース方式が確定するまで空処理の確認用コマンドとして扱う。
 
 ## テスト追加方針
 
@@ -116,14 +144,15 @@ Drive UI の新しいメニュー構造や文言を確認した場合は、実�
 
 以下は単体テストでは確認できないため、必要に応じて Firefox 実機で確認する。
 
-- `dist/manifest.json` を一時的なアドオンとして読み込めること
+- Firefox で `dist/firefox/manifest.json` を一時的なアドオンとして読み込めること
+- Chrome で `dist/chrome/` をパッケージ化されていない拡張機能として読み込めること
 - Google Drive 上で Office ファイルの対象メニューが視覚的に無効化されること
 - `docs.google.com/spreadsheets/*`
 - `docs.google.com/presentation/*`
 - `docs.google.com/document/*`
 - Options Page の設定変更が URL ブロックとメニュー無効化に反映されること
 
-手動確認前には `npm run build` を実行する。
+Firefox の手動確認前には `npm run build` を実行する。Chrome の手動確認前には `npm run build:chrome` を実行する。
 
 ## 失敗時の確認観点
 

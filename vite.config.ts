@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 
 const entries = {
   "background-firefox": "src/background/background-firefox.ts",
+  "service-worker-chromium": "src/background/service-worker-chromium.ts",
   "drive-menu-guard": "src/content/drive-menu-guard.ts",
   blocked: "src/pages/blocked.ts",
   options: "src/options/options.ts",
@@ -24,14 +25,16 @@ if (!buildEntry || !isEntryName(buildEntry)) {
 }
 
 const entryName = buildEntry;
+const outputFormat = entryName === "service-worker-chromium" ? "es" : "iife";
+const outputDirectory = process.env.BUILD_OUT_DIR ?? "dist";
 
 export default defineConfig({
   build: {
     emptyOutDir: false,
-    outDir: "dist",
+    outDir: outputDirectory,
     lib: {
       entry: resolve(__dirname, entries[entryName]),
-      formats: ["iife"],
+      formats: [outputFormat],
       name: `AntiGoogleOffice${entryName.replace(/(^|-)([a-z])/g, (_, __, char: string) => char.toUpperCase())}`,
       fileName: () => `${entryName}.js`,
     },

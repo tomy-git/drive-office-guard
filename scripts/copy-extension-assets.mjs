@@ -3,6 +3,20 @@
 import { copyFileSync, cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+const target = process.argv[2] ?? "firefox";
+const manifestByTarget = {
+  firefox: "manifest.firefox.json",
+  chrome: "manifest.chrome.json",
+};
+
+if (!(target in manifestByTarget)) {
+  throw new Error(
+    `Unsupported browser target "${target}". Expected one of: ${Object.keys(manifestByTarget).join(", ")}`,
+  );
+}
+
+const distDirectory = resolve(import.meta.dirname, "..", "dist", target);
+
 const copies = [
   ["src/pages/blocked.html", "dist/blocked.html"],
   ["src/pages/options.html", "dist/options.html"],

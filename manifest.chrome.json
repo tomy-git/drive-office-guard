@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Office Breakage Blocker for Google Drive",
+  "version": "0.1.0",
+  "description": "Prevents Google Drive from opening Microsoft Office files in Google Docs, Sheets, or Slides and breaking their layout.",
+  "icons": {
+    "48": "icons/apps-48.png",
+    "96": "icons/apps-96.png"
+  },
+  "permissions": ["storage", "declarativeNetRequest"],
+  "host_permissions": ["https://drive.google.com/*", "https://docs.google.com/*"],
+  "background": {
+    "service_worker": "service-worker-chromium.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://drive.google.com/*"],
+      "js": ["drive-menu-guard.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "storage": {
+    "managed_schema": "managed_schema.json"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html"],
+      "matches": ["https://docs.google.com/*"]
+    }
+  ]
+}
