@@ -1,10 +1,10 @@
-# anti-google-office 設計方針書
+# Office Breakage Blocker for Google Drive 設計方針書
 
 ## 概要
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによる以下の問題を防止するためのブラウザ拡張機能を開発する。
 Phase 1 は Firefox を先行対象とする。
-安全側に倒し、設定で有効化された Google Docs / Sheets / Slides エディタへの直接アクセスもサービス単位で制限する。
+安全側に倒し、設定で有効化された Google Docs / Sheets / Slides への直接アクセスもサービス単位で制限する。
 
 - フォント崩れ
 - レイアウト崩れ
@@ -49,9 +49,9 @@ Google Docs 系 URL の直接アクセスを禁止する。
 - `docs.google.com/document/*`
 
 直接アクセス時点では元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できない。
-そのため、URL ブロックは設定で有効なサービス単位で `docs.google.com` のエディタ URL 全体に適用する。
+そのため、URL ブロックは設定で有効なサービス単位で `docs.google.com` の URL 全体に適用する。
 Google ネイティブ形式の利用を許可する例外要件は、Phase 2 のホワイトリストまたは管理ポリシーで扱う。
-このため、Phase 1 の製品方針は「Office ファイル保護を主目的としつつ、設定対象サービスの Google エディタ起動自体を禁止する」と定義する。
+このため、Phase 1 の製品方針は「Office ファイル保護を主目的としつつ、設定対象の Google Docs / Sheets / Slides 起動自体を禁止する」と定義する。
 
 Office ファイルは以下のみ許可する。
 
@@ -199,7 +199,7 @@ Google Drive の GUI 変更時は、原則として `drive-dom-adapter.ts` と `
 - 新しいタブで開く
 
 ただし、Google スプレッドシート / Google スライド / Google ドキュメントは設定により個別に ON/OFF できる。
-「新しいタブで開く」は、Office ファイルを Google Docs 系エディタで開く導線になり得るため、Office ファイルを操作している場合は常時無効化対象とする。
+「新しいタブで開く」は、Office ファイルを Google Docs / Sheets / Slides で開く導線になり得るため、Office ファイルを操作している場合は常時無効化対象とする。
 Office ファイル以外の Drive 操作では無効化しない。
 
 UI 上では該当項目を完全に消さず、以下のように視覚的に無効化する。
@@ -266,7 +266,7 @@ blocked.html
 表示文言例：
 
 ```text
-この組織では、Google Docs / Sheets / Slides エディタの利用を制限しています。
+この組織では、Google Docs / Sheets / Slides の利用を制限しています。
 
 Drive の「プレビュー」または「ダウンロード」を使用してください。
 ```
@@ -365,6 +365,7 @@ type GuardSettings = {
   blockSheets: boolean;
   blockSlides: boolean;
   blockDocs: boolean;
+  hideDisabledLabel: boolean;
 };
 
 type OfficeFileKind = "xlsx" | "pptx" | "docx";
@@ -534,7 +535,8 @@ function isBlockedUrl(url: string): boolean {
 
 Background Script は `tabs.update` を主制御にしない。
 Firefox Phase 1 では DNR の `redirect` ルールを正とし、Background Script は設定変更に応じて動的ルールを更新する。
-Block Page は Phase 1 では静的な説明ページとし、URL 別の理由表示や監査ログは Phase 3 で扱う。
+Block Page は Phase 1 では設定に基づき、現在制限中の Google Docs / Sheets / Slides だけを表示する。
+URL 別の理由表示や監査ログは Phase 3 で扱う。
 
 動的ルール更新例：
 
@@ -688,15 +690,12 @@ Chrome / Edge で差し替えるものは以下に限定する。
 ```json
 {
   "manifest_version": 3,
-  "name": "Drive Office Guard",
+  "name": "Office Breakage Blocker for Google Drive",
   "version": "0.1.0",
 
   "permissions": ["storage", "declarativeNetRequest"],
 
-  "host_permissions": [
-    "https://drive.google.com/*",
-    "https://docs.google.com/*"
-  ],
+  "host_permissions": ["https://drive.google.com/*", "https://docs.google.com/*"],
 
   "background": {
     "scripts": ["background-firefox.js"],
@@ -754,12 +753,13 @@ Phase 1 で Options Page を追加する。
 
 設定例：
 
-| 設定        | 内容                                | Phase |
-| ----------- | ----------------------------------- | ----- |
-| blockSheets | Google スプレッドシートを無効化する | 1     |
-| blockSlides | Google スライドを無効化する         | 1     |
-| blockDocs   | Google ドキュメントを無効化する     | 1     |
-| allowRules  | 例外許可ルール                      | 2     |
+| 設定              | 内容                                                             | Phase |
+| ----------------- | ---------------------------------------------------------------- | ----- |
+| blockSheets       | Google スプレッドシートを無効化する                              | 1     |
+| blockSlides       | Google スライドを無効化する                                      | 1     |
+| blockDocs         | Google ドキュメントを無効化する                                  | 1     |
+| hideDisabledLabel | 「拡張機能により無効化」の括弧書きを表示せずグレーアウトのみ行う | 1     |
+| allowRules        | 例外許可ルール                                                   | 2     |
 
 設定保存には以下を使用する。
 
@@ -773,7 +773,8 @@ browser.storage.sync;
 {
   "blockSheets": true,
   "blockSlides": true,
-  "blockDocs": true
+  "blockDocs": true,
+  "hideDisabledLabel": false
 }
 ```
 
@@ -1071,6 +1072,26 @@ Chrome / Edge への移植方針を整理する。
 - Drive DOM adapter / pattern 分離
 - Drive GUI パターン fixture と抽出テスト
 
+### Phase 1 MVP 進捗
+
+- [x] Firefox MV3 向け `manifest.firefox.json` を追加
+- [x] Vite / TypeScript / ESLint / Prettier / Vitest 設定を追加
+- [x] `storage.managed` 優先、未指定キーは sync/default へ fallback する設定処理を追加
+- [x] DNR dynamic rules で rule id 1001/1002/1003 を使うルール生成を追加
+- [x] Firefox background で install/startup/storage 変更時の DNR 同期を追加
+- [x] Drive 固有文言・判定を `drive-patterns.ts` に集約
+- [x] Drive DOM adapter と Drive menu guard を追加
+- [x] `innerHTML`、`pointer-events: none`、DOM 要素削除を使わない無効化処理を追加
+- [x] block page を追加
+- [x] Options Page を追加
+- [x] Drive fixture と adapter/rules/config の単体テストを追加
+- [x] README の実装手順と設計書リンクを更新
+- [x] レビュー指摘に基づき、Content Script fallback の managed 優先解決と無効化状態の復元を追加
+
+未実施:
+
+- [ ] Firefox 実機で `dist/manifest.json` を一時アドオンとして読み込み、DNR redirect と Options Page を確認する
+
 ---
 
 ## Phase 2
@@ -1132,7 +1153,7 @@ Office ファイルは以下の状態を実現する。
 また、独自ドメインの Google Workspace 環境でも利用できるよう、メールドメインに依存せず Google Drive / docs.google.com の挙動を基準に制御する。
 さらに、Google Drive の仕様変更を検知した場合は DOM 変更を停止し、画面上に通知を表示することで、安全性と保守性を優先する。
 
-Drive Office Guard は、Google Drive の利便性を維持しつつ、Microsoft Office ファイルを Google Docs / Sheets / Slides で開くことによる互換性破壊を防ぐための WebExtensions ベースのブラウザ拡張機能である。
+Office Breakage Blocker for Google Drive は、Google Drive の利便性を維持しつつ、Microsoft Office ファイルを Google Docs / Sheets / Slides で開くことによる互換性破壊を防ぐための WebExtensions ベースのブラウザ拡張機能である。
 
 特に以下を重視する。
 

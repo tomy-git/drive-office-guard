@@ -1,4 +1,4 @@
-# Anti Google Drive Office
+# Office Breakage Blocker for Google Drive
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによるレイアウト崩れ、フォント崩れ、SmartArt 崩れ、アニメーション消失、意図しない Google 形式への変換を防ぐためのブラウザ拡張機能です。
 
@@ -18,7 +18,7 @@ Google Drive 上の Office ファイルについて、以下の操作を制限�
 - Preview（プレビュー）
 - Download（ダウンロード）
 
-共有URLなどによる直接アクセスでは元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できないため、Phase 1 では安全側に倒し、設定で有効化された Google Docs / Sheets / Slides エディタ URL への直接アクセスもサービス単位で制限します。
+共有URLなどによる直接アクセスでは元ファイルが Office ファイルか Google ネイティブ形式かを安定して判定できないため、Phase 1 では安全側に倒し、設定で有効化された Google Docs / Sheets / Slides の URL への直接アクセスもサービス単位で制限します。
 
 ## 対象ブラウザ
 
@@ -34,7 +34,7 @@ Google Drive 上の Office ファイルについて、以下の操作を制限�
 - `docs.google.com/spreadsheets/*` のブロック
 - `docs.google.com/presentation/*` のブロック
 - `docs.google.com/document/*` のブロック
-- ブロック時の説明ページ表示
+- ブロック時に、現在制限中の Google Docs / Sheets / Slides だけを表示する説明ページ
 - Sheets / Slides / Docs の個別ブロック設定
 - `storage.managed` による管理ポリシー読み取り
 - Google Drive 仕様変更検知時のフェイルセーフ通知
@@ -59,9 +59,12 @@ Google Drive の GUI 変更に追従しやすくするため、Drive DOM への�
 {
   "blockSheets": true,
   "blockSlides": true,
-  "blockDocs": true
+  "blockDocs": true,
+  "hideDisabledLabel": false
 }
 ```
+
+`hideDisabledLabel` を `true` にすると、Google Drive のメニュー上ではグレーアウトだけを行い、「拡張機能により無効化」の括弧書きを追加しません。
 
 個人利用時は `browser.storage.sync` を使用します。Enterprise 利用時は `storage.managed` を優先し、管理ポリシーに存在するキーはユーザー設定で上書きできない設計とします。
 
@@ -82,17 +85,47 @@ Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先�
 
 厳密に強制する場合は、Firefox Enterprise、Chrome Enterprise、Edge for Business、MDM、Endpoint 管理、DLP などの併用が必要です。
 
+## 開発手順
+
+前提:
+
+- Node.js 20 以上
+- npm
+
+セットアップ:
+
+```bash
+npm install
+```
+
+検証:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format
+npm test
+npm run build
+```
+
+Firefox での手動確認:
+
+1. `npm run build` を実行する。
+2. Firefox で `about:debugging#/runtime/this-firefox` を開く。
+3. `dist/manifest.json` を一時的なアドオンとして読み込む。
+4. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+
 ## 開発ステータス
 
-現在は設計段階です。実装は以下の順で進めます。
+Phase 1 MVP の Firefox 実装を追加済みです。Firefox 実機での一時アドオン読み込みと DNR redirect の手動確認は未実施です。
 
-1. Firefox 向け Drive menu item disable
-2. Firefox 向け `docs.google.com` block
-3. block page
-4. Firefox 対応版のパッケージ化
-5. 管理ポリシーと Options Page
-6. Drive GUI パターン fixture と DOM adapter の単体テスト
-7. Chrome / Edge への移植方針整理
+- Drive メニュー項目の視覚的無効化
+- `docs.google.com` block
+- block page
+- Firefox 対応版のパッケージ化
+- 管理ポリシーと Options Page
+- Drive GUI パターン fixture と DOM adapter の単体テスト
+- Chrome / Edge への移植方針整理は Phase 2 対象
 
 ## ライセンス
 
@@ -100,4 +133,4 @@ Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先�
 
 ## 設計書
 
-詳細は [anti-google-office_design.md](./anti-google-office_design.md) を参照してください。
+詳細は [anti-google-office_design.md](./docs/anti-google-office_design.md) を参照してください。
