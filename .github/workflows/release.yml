@@ -1,28 +1,23 @@
 # SPDX-License-Identifier: MPL-2.0
 
-name: CI
+name: Release
 
 on:
-  workflow_dispatch:
-  pull_request:
   push:
-    branches:
-      - main
     tags:
-      - v*
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  test:
-    name: Verify extension
+  release:
+    name: Release extension
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -33,17 +28,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check package version is not already released
-        if: github.event_name == 'pull_request'
+      - name: Check tag matches package version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TAG="v${VERSION}"
+          TAG="${GITHUB_REF_NAME}"
 
           echo "package.json version: ${VERSION}"
-          echo "expected tag: ${TAG}"
+          echo "git tag: ${TAG}"
 
-          if git rev-parse "${TAG}" >/dev/null 2>&1; then
-            echo "Error: ${TAG} already exists. Please bump package.json version."
+          if [ "${TAG}" != "v${VERSION}" ]; then
+            echo "Error: Git tag and package.json version do not match."
             exit 1
           fi
 
@@ -70,3 +64,16 @@ jobs:
 
       - name: Lint extension
         run: npm run lint:ext
+
+      - name: Package Firefox extension
+        run: npm run package:firefox
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          gh release create "${GITHUB_REF_NAME}" \
+            "web-ext-artifacts/drive-office-guard-${VERSION}.zip" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "Release ${GITHUB_REF_NAME}"
