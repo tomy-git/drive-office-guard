@@ -105,8 +105,11 @@ npm run typecheck
 npm run lint
 npm run format
 npm test
+npm run test:coverage
 npm run build
 ```
+
+単体テストの対象範囲と追加方針は [テスト実施手順](./docs/how_to_test.md) を参照してください。
 
 Firefox での手動確認:
 

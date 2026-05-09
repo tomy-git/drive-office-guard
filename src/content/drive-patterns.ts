@@ -2,6 +2,11 @@ import type { GuardSettings } from "../shared/config";
 
 export type OfficeFileKind = "xlsx" | "pptx" | "docx";
 export type BlockedActionKind = "sheets" | "slides" | "docs" | "new-tab";
+export type SpecChangeRiskKind =
+  | "too-many-menu-candidates"
+  | "blocked-action-link-changed"
+  | "blocked-action-label-changed"
+  | "new-tab-link-changed";
 
 export type DriveDomSignal = {
   role?: string;
@@ -70,10 +75,19 @@ const ACTION_SETTING_KEY: Partial<Record<BlockedActionKind, keyof GuardSettings>
   slides: "blockSlides",
   docs: "blockDocs",
 };
+const ACTION_PATH_PREFIX: Partial<Record<BlockedActionKind, string>> = {
+  sheets: "/spreadsheets/",
+  slides: "/presentation/",
+  docs: "/document/",
+};
 
 const MENU_ROLES = new Set(["menuitem", "option", "button"]);
 const OFFICE_FILE_KINDS = ["xlsx", "pptx", "docx"] as const;
 const BLOCKED_ACTION_KINDS = ["sheets", "slides", "docs", "new-tab"] as const;
+const GOOGLE_OFFICE_ACTION_HINT_PATTERN =
+  /google\s*(ドキュメント|スプレッドシート|スライド|プレゼンテーション|docs|sheets|slides)\s*(で|を|開く|表示|open)?|(?:開く|表示|open).{0,24}google\s*(ドキュメント|スプレッドシート|スライド|プレゼンテーション|docs|sheets|slides)/i;
+const GOOGLE_OPEN_WITH_DATA_PATTERN = /open-with-google|google-(docs|sheets|slides)/i;
+const ACTION_DATA_ATTRIBUTE_NAME_PATTERN = /^data-.*(?:action|command).*$/i;
 
 export function getSignalText(signal: DriveDomSignal): string {
   return [
@@ -159,5 +173,70 @@ export function shouldDisableSignal(
     getOfficeFileKind(signal) !== null &&
     getMenuItemConfidence(signal) >= MIN_MENU_CONFIDENCE &&
     matchesBlockedAction(signal, settings) !== null
+  );
+}
+
+export function getSpecChangeRisk(
+  signal: DriveDomSignal,
+): Exclude<SpecChangeRiskKind, "too-many-menu-candidates"> | null {
+  const action = matchesBlockedAction(signal);
+  const officeFileKind = getOfficeFileKind(signal);
+  const parsedHref = parseSignalHref(signal.href);
+
+  if (
+    action === "new-tab" &&
+    parsedHref &&
+    parsedHref.hostname !== "drive.google.com"
+  ) {
+    return "new-tab-link-changed";
+  }
+
+  const expectedPathPrefix = action ? ACTION_PATH_PREFIX[action] : undefined;
+
+  if (
+    expectedPathPrefix &&
+    parsedHref?.hostname === "docs.google.com" &&
+    !parsedHref.pathname.startsWith(expectedPathPrefix)
+  ) {
+    return "blocked-action-link-changed";
+  }
+
+  if (
+    officeFileKind !== null &&
+    signal.role &&
+    MENU_ROLES.has(signal.role.toLowerCase()) &&
+    action === null &&
+    hasGoogleOfficeActionHint(signal)
+  ) {
+    return "blocked-action-label-changed";
+  }
+
+  return null;
+}
+
+function parseSignalHref(href: string | undefined): URL | null {
+  if (!href) {
+    return null;
+  }
+
+  try {
+    return new URL(href);
+  } catch {
+    return null;
+  }
+}
+
+function hasGoogleOfficeActionHint(signal: DriveDomSignal): boolean {
+  const actionText = [signal.text, signal.ariaLabel, signal.title]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    GOOGLE_OFFICE_ACTION_HINT_PATTERN.test(actionText) ||
+    Object.entries(signal.dataAttributes).some(
+      ([name, value]) =>
+        ACTION_DATA_ATTRIBUTE_NAME_PATTERN.test(name) &&
+        GOOGLE_OPEN_WITH_DATA_PATTERN.test(value),
+    )
   );
 }

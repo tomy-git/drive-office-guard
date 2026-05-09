@@ -1,6 +1,7 @@
 import {
   type DriveDomSignal,
   MAX_MENU_CANDIDATES,
+  getSpecChangeRisk,
   getOfficeFileKind,
   getMenuItemConfidence,
 } from "./drive-patterns";
@@ -61,7 +62,14 @@ export function findActionableItems(root: ParentNode = document): HTMLElement[] 
 }
 
 export function hasSpecChangeRisk(root: ParentNode = document): boolean {
-  return getMenuCandidates(root).length > MAX_MENU_CANDIDATES;
+  const candidates = getMenuCandidates(root);
+
+  return (
+    candidates.length > MAX_MENU_CANDIDATES ||
+    candidates.some(
+      (element) => getSpecChangeRisk(extractDriveSignal(element)) !== null,
+    )
+  );
 }
 
 function getHref(element: HTMLElement): string | undefined {
