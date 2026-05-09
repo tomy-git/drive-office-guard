@@ -5,7 +5,7 @@
 ## 概要
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによる以下の問題を防止するためのブラウザ拡張機能を開発する。
-Phase 1 は Firefox を先行対象とする。
+Phase 1 は Firefox を先行対象とする。Phase 2 で Chrome MV3 対応を追加する。
 安全側に倒し、設定で有効化された Google Docs / Sheets / Slides への直接アクセスもサービス単位で制限する。
 
 - フォント崩れ
@@ -153,7 +153,7 @@ anti-google-office/
 │     └─ dnr-rules.ts
 │
 ├─ manifest.firefox.json
-├─ manifest.chrome.json        # Phase 2
+├─ manifest.chrome.json
 ├─ manifest.edge.json          # Phase 2
 │
 ├─ package.json
@@ -671,7 +671,7 @@ Phase 1 の完了条件：
 
 ### Chrome / Edge 移植方針
 
-Chrome / Edge は Phase 2 対象とする。
+Chrome / Edge は Phase 2 対象とする。Chrome は MV3 service worker と managed storage schema を追加済みで、Edge は後続対象とする。
 Firefox 先行実装のうち、以下は共有して移植する。
 
 - `drive-dom-adapter.ts`
@@ -1096,7 +1096,7 @@ Chrome / Edge への移植方針を整理する。
 
 未実施:
 
-- [ ] Firefox 実機で `dist/manifest.json` を一時アドオンとして読み込み、DNR redirect と Options Page を確認する
+- [ ] Firefox 実機で `dist/firefox/manifest.json` を一時アドオンとして読み込み、DNR redirect と Options Page を確認する
 
 ---
 
@@ -1104,7 +1104,19 @@ Chrome / Edge への移植方針を整理する。
 
 追加対象：
 
-- Chrome / Edge 対応
+- [x] Chrome MV3 向け `manifest.chrome.json` を追加
+- [x] Chrome background service worker `service-worker-chromium.ts` を追加
+- [x] Chrome managed storage 用 `managed_schema.json` を追加
+- [x] Vite build に Chrome service worker entry を追加
+- [x] manifest と managed schema の整合テストを追加
+- [x] Chrome 向け build/package コマンドを追加
+- [x] Firefox / Chrome build 成果物の分離を検証する dist smoke test を追加
+- [x] Firefox / Chrome の build 出力先を `dist/firefox` / `dist/chrome` に分離
+- [x] CI に Chrome build と package artifact を追加
+- [x] CI に Firefox / Chrome release placeholder job を追加
+- [x] README とテスト手順に Chrome 対応を追記
+- [x] Chrome 実機で `dist/chrome/` を読み込み、Drive UI 無効化、DNR redirect、Options Page を確認する
+- [ ] Edge 対応
 - MIME Type 制御
 - ホワイトリスト
 - 管理ポリシーの高度化
