@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractDriveSignal,
   findActionableItems,
+  hasSpecChangeRisk,
 } from "../../src/content/drive-dom-adapter";
 import {
   getOfficeFileKind,
@@ -99,4 +100,103 @@ describe("drive-dom-adapter", () => {
     expect(matchesBlockedAction(signal, DEFAULT_GUARD_SETTINGS)).toBe("slides");
     expect(shouldDisableSignal(signal, DEFAULT_GUARD_SETTINGS)).toBe(true);
   });
+
+  it("Drive の既知メニュー構造では仕様変更リスクとして扱わない", () => {
+    const root = loadFixture("office-menu.html");
+
+    expect(hasSpecChangeRisk(root)).toBe(false);
+  });
+
+  it("Google エディタへのリンク先 path が変わった場合は仕様変更リスクとして扱う", () => {
+    const root = createFixture(`
+      <div role="menu" data-target-file="budget.xlsx">
+        <a
+          role="menuitem"
+          href="https://docs.google.com/sheets/d/example"
+          aria-label="Google スプレッドシートで開く budget.xlsx"
+        >
+          Google スプレッドシートで開く
+        </a>
+      </div>
+    `);
+
+    expect(hasSpecChangeRisk(root)).toBe(true);
+  });
+
+  it("Google Drive の新しいタブで開くリンク先が Drive 外へ変わった場合は仕様変更リスクとして扱う", () => {
+    const root = createFixture(`
+      <div role="menu" data-target-file="quarterly-plan.pptx">
+        <a
+          role="menuitem"
+          href="https://docs.google.com/presentation/d/example"
+          aria-label="新しいタブで開く quarterly-plan.pptx"
+        >
+          新しいタブで開く
+        </a>
+      </div>
+    `);
+
+    expect(hasSpecChangeRisk(root)).toBe(true);
+  });
+
+  it("Google エディタで開くボタン名称が既知パターンから変わった場合は仕様変更リスクとして扱う", () => {
+    const root = createFixture(`
+      <div role="menu" data-target-file="quarterly-plan.pptx">
+        <div
+          role="menuitem"
+          data-action="open-with-google-slides"
+          aria-label="Google プレゼンテーションで表示 quarterly-plan.pptx"
+        >
+          Google プレゼンテーションで表示
+        </div>
+      </div>
+    `);
+
+    expect(hasSpecChangeRisk(root)).toBe(true);
+  });
+
+  it("Google や presentation を含む Office ファイル名だけでは仕様変更リスクとして扱わない", () => {
+    const root = createFixture(`
+      <div role="menu" data-target-file="google-project-presentation.pptx">
+        <div role="menuitem" aria-label="プレビュー google-project-presentation.pptx">
+          プレビュー
+        </div>
+      </div>
+    `);
+
+    expect(hasSpecChangeRisk(root)).toBe(false);
+  });
+
+  it("ファイル名由来の data 属性だけでは仕様変更リスクとして扱わない", () => {
+    const root = createFixture(`
+      <div role="menu">
+        <div
+          role="menuitem"
+          data-target-file="google-slides-budget.pptx"
+          aria-label="プレビュー google-slides-budget.pptx"
+        >
+          プレビュー
+        </div>
+      </div>
+    `);
+
+    expect(hasSpecChangeRisk(root)).toBe(false);
+  });
+
+  it("メニュー候補が異常に多い場合は仕様変更リスクとして扱う", () => {
+    const root = createFixture(
+      Array.from({ length: 201 }, (_, index) => {
+        return `<button role="button" aria-label="候補 ${index}">候補 ${index}</button>`;
+      }).join(""),
+    );
+
+    expect(hasSpecChangeRisk(root)).toBe(true);
+  });
 });
+
+function createFixture(html: string): HTMLElement {
+  const parser = new DOMParser();
+  const fixture = parser.parseFromString(html, "text/html");
+
+  return fixture.body;
+}

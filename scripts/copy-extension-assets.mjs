@@ -14,10 +14,7 @@ for (const [from, to] of copies) {
     recursive: true,
   });
 
-  copyFileSync(
-    resolve(import.meta.dirname, "..", from),
-    destination,
-  );
+  copyFileSync(resolve(import.meta.dirname, "..", from), destination);
 }
 
 /* icons copy */

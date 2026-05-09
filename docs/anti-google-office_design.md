@@ -156,6 +156,10 @@ anti-google-office/
 │
 ├─ package.json
 ├─ tsconfig.json
+├─ tsconfig.app.json
+├─ tsconfig.test.json
+├─ tsconfig.config.json
+├─ tsconfig.base.json
 ├─ vite.config.ts
 └─ README.md
 ```
