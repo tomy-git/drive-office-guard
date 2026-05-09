@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+
 # Office Breakage Blocker for Google Drive
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによるレイアウト崩れ、フォント崩れ、SmartArt 崩れ、アニメーション消失、意図しない Google 形式への変換を防ぐためのブラウザ拡張機能です。
@@ -132,7 +134,21 @@ Phase 1 MVP の Firefox 実装を追加済みです。Firefox 実機での一時
 
 ## ライセンス
 
-ライセンス候補は MPL 2.0 です。
+本リポジトリは MPL 2.0 で提供します。SPDX ライセンス識別子は `MPL-2.0` です。
+
+手書きのソース、テスト、設定、ドキュメントに SPDX ヘッダーを付与するには、以下を実行します。
+
+```bash
+npm run license:headers
+```
+
+JSON はコメントを書けないため、`REUSE.toml` で一括管理します。
+
+付与漏れの確認:
+
+```bash
+npm run license:check
+```
 
 ## 設計書
 

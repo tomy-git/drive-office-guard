@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import { DEFAULT_GUARD_SETTINGS, readEffectiveSettings } from "../shared/config";
 
 const serviceLabels = [

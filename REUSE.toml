@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MPL-2.0
+
+version = 1
+
+[[annotations]]
+path = ["*.json", "**/*.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "Contributors to Office Breakage Blocker for Google Drive"
+SPDX-License-Identifier = "MPL-2.0"

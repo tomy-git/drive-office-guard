@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import { resolve } from "node:path";
 
 import { defineConfig } from "vite";

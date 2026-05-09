@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import type { GuardSettings } from "../shared/config";
 
 export type OfficeFileKind = "xlsx" | "pptx" | "docx";

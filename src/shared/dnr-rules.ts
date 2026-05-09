@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import type browser from "webextension-polyfill";
 
 import type { GuardSettings } from "./config";
