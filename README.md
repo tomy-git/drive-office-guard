@@ -4,7 +4,7 @@
 
 Google Drive 上で Microsoft Office ファイル（`.pptx`, `.xlsx`, `.docx`）を Google Docs / Sheets / Slides で開くことによるレイアウト崩れ、フォント崩れ、SmartArt 崩れ、アニメーション消失、意図しない Google 形式への変換を防ぐためのブラウザ拡張機能です。
 
-Phase 1 では Firefox を先行対象とし、Chrome / Edge は Phase 2 で対応します。
+Phase 1 では Firefox を先行対象とし、Phase 2 で Chrome 対応を追加しています。Edge は Phase 2 の後続対象です。
 
 ## 目的
 
@@ -24,11 +24,11 @@ Google Drive 上の Office ファイルについて、以下の操作を制限�
 
 ## 対象ブラウザ
 
-| ブラウザ        | 対応方針    |
-| --------------- | ----------- |
-| Mozilla Firefox | Phase 1 MVP |
-| Google Chrome   | Phase 2     |
-| Microsoft Edge  | Phase 2     |
+| ブラウザ        | 対応方針     |
+| --------------- | ------------ |
+| Mozilla Firefox | Phase 1 MVP  |
+| Google Chrome   | Phase 2      |
+| Microsoft Edge  | Phase 2 後続 |
 
 ## 主な機能
 
@@ -74,7 +74,7 @@ Google Drive の GUI 変更に追従しやすくするため、Drive DOM への�
 
 Firefox Enterprise では、native manifest または `3rdparty` enterprise policy による managed storage 配布を検討します。
 
-Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先行実装の共通ロジックを移植します。
+Chrome Enterprise は Phase 2 で `managed_schema.json` を含む Manifest V3 対応を追加しています。Edge for Business は Phase 2 の後続対象です。
 
 ## 制限事項
 
@@ -100,33 +100,50 @@ Chrome Enterprise と Edge for Business は Phase 2 で対応し、Firefox 先�
 npm install
 ```
 
-検証:
+ローカル事前確認:
 
 ```bash
-npm run typecheck
-npm run lint
-npm run format
-npm test
-npm run test:coverage
-npm run build
+npm run preflight
 ```
 
-Firefox 向け配布 ZIP の作成:
+`preflight` は、SPDX ヘッダー確認、型チェック、lint、フォーマット確認、単体テスト、カバレッジ、Firefox / Chrome の build と ZIP 作成をまとめて実行します。Pull Request 作成前やリリース候補の確認では、原則としてこのコマンドを実行します。
 
-```bash
-npm run package:firefox
-```
+個別に確認したい場合は、以下を使用します。
 
-生成物は `web-ext-artifacts/firefox-addon.zip` に出力されます。
+| 目的                        | コマンド                  | 主な出力                                 |
+| --------------------------- | ------------------------- | ---------------------------------------- |
+| Firefox 向け build          | `npm run build`           | `dist/firefox/`                          |
+| Chrome 向け build           | `npm run build:chrome`    | `dist/chrome/`                           |
+| Firefox 向け ZIP 作成       | `npm run package:firefox` | `web-ext-artifacts/firefox-addon.zip`    |
+| Chrome 向け ZIP 作成        | `npm run package:chrome`  | `web-ext-artifacts/chrome-extension.zip` |
+| 型チェック                  | `npm run typecheck`       | TypeScript の検証結果                    |
+| lint                        | `npm run lint`            | ESLint の検証結果                        |
+| フォーマット確認            | `npm run format`          | Prettier の検証結果                      |
+| 単体テスト                  | `npm test`                | Vitest の実行結果                        |
+| 単体テスト + カバレッジ     | `npm run test:coverage`   | Vitest coverage の実行結果               |
+| SPDX ライセンスヘッダー確認 | `npm run license:check`   | SPDX ヘッダーの検証結果                  |
 
 単体テストの対象範囲と追加方針は [テスト実施手順](./docs/how_to_test.md) を参照してください。
 
 Firefox での手動確認:
 
-1. `npm run build` を実行する。
-2. Firefox で `about:debugging#/runtime/this-firefox` を開く。
-3. `dist/manifest.json` を一時的なアドオンとして読み込む。
-4. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+```bash
+npm run build
+```
+
+1. Firefox で `about:debugging#/runtime/this-firefox` を開く。
+2. `dist/firefox/manifest.json` を一時的なアドオンとして読み込む。
+3. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+
+Chrome での手動確認:
+
+```bash
+npm run build:chrome
+```
+
+1. Chrome で `chrome://extensions` を開く。
+2. デベロッパーモードを有効化し、`dist/chrome/` を「パッケージ化されていない拡張機能」として読み込む。ディレクトリごと読み込む必要がある。
+3. Google Drive 上の Office ファイル、`docs.google.com` の対象 URL、Options Page の設定反映を確認する。
 
 ## CI/CD
 
@@ -140,30 +157,29 @@ GitHub Actions は以下を自動実行します。
   - Vitest
   - Vitest coverage
   - Vite build
+  - Chrome 向け Vite build
   - Firefox 向けアドオン ZIP の artifact 作成
+  - Chrome 向け拡張 ZIP の artifact 作成
 - `v*` タグ push または手動実行:
-  - 上記の品質ゲート完了後、Firefox 向け listed アドオンを AMO へ送信
+  - Firefox / Chrome 向けリリース job を起動
+  - 現時点ではストア送信や GitHub Release 作成は行わず、placeholder として成功のみ確認
 
-AMO 送信には、GitHub の `addons-mozilla` environment に以下の Secrets を設定します。
+Firefox / Chrome のストア送信、GitHub Release への ZIP 添付、リリース用 Secrets / environment は今後の検討対象です。リリース方針が確定するまでは、CI 上の release job は空処理で成功する定義だけを保持します。
 
-- `AMO_JWT_ISSUER`: addons.mozilla.org の JWT issuer
-- `AMO_JWT_SECRET`: addons.mozilla.org の JWT secret
-
-`web-ext sign` は `dist/` を再ビルドして AMO へ送信し、Vite で生成されたコードのレビュー用に `git archive` で作成した `web-ext-artifacts/source-code.zip` も添付します。listed アドオンのレビュー完了は CI 内で待たず、AMO 側の審査状態で確認します。
-
-Chrome / Edge 向けパッケージングは Phase 2 で追加します。追加時は Firefox と同じく、品質ゲート後にブラウザ別 packaging job を分け、生成物名と manifest 生成処理をブラウザ単位で分離します。
+Chrome 向けパッケージングは Phase 2 で追加済みです。Firefox と同じく、品質ゲート後にブラウザ別 packaging job を分け、生成物名、manifest、出力先をブラウザ単位で分離します。Edge 向け manifest とパッケージングは後続対応です。
 
 ## 開発ステータス
 
-Phase 1 MVP の Firefox 実装を追加済みです。Firefox 実機での一時アドオン読み込みと DNR redirect の手動確認は未実施です。
+Phase 1 MVP の Firefox 実装と、Phase 2 の Chrome MV3 実装を追加済みです。Chrome 実機での読み込み、Drive UI 無効化、DNR redirect、Options Page は確認済みです。Firefox 実機での一時アドオン読み込みと DNR redirect の手動確認は未実施です。
 
 - Drive メニュー項目の視覚的無効化
 - `docs.google.com` block
 - block page
 - Firefox 対応版のパッケージ化
+- Chrome 対応版のパッケージ化
 - 管理ポリシーと Options Page
 - Drive GUI パターン fixture と DOM adapter の単体テスト
-- Chrome / Edge への移植方針整理は Phase 2 対象
+- Edge への移植は Phase 2 後続対象
 
 ## ライセンス
 
