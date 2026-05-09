@@ -17,6 +17,9 @@
     "format:write": "prettier --write .",
     "license:check": "node scripts/spdx-headers.mjs --check",
     "license:headers": "node scripts/spdx-headers.mjs --write",
+    "package:firefox": "npm run build && web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --filename firefox-addon.zip --overwrite-dest",
+    "package:source": "mkdir -p web-ext-artifacts && git archive --format=zip --output web-ext-artifacts/source-code.zip HEAD",
+    "publish:firefox:listed": "npm run build && web-ext sign --source-dir dist --artifacts-dir web-ext-artifacts --channel listed --approval-timeout 0 --upload-source-code web-ext-artifacts/source-code.zip",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.config.json"

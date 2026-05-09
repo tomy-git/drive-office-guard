@@ -111,6 +111,14 @@ npm run test:coverage
 npm run build
 ```
 
+Firefox 向け配布 ZIP の作成:
+
+```bash
+npm run package:firefox
+```
+
+生成物は `web-ext-artifacts/firefox-addon.zip` に出力されます。
+
 単体テストの対象範囲と追加方針は [テスト実施手順](./docs/how_to_test.md) を参照してください。
 
 Firefox での手動確認:
@@ -119,6 +127,31 @@ Firefox での手動確認:
 2. Firefox で `about:debugging#/runtime/this-firefox` を開く。
 3. `dist/manifest.json` を一時的なアドオンとして読み込む。
 4. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+
+## CI/CD
+
+GitHub Actions は以下を自動実行します。
+
+- Pull Request と `main` への push:
+  - SPDX ライセンスヘッダー確認
+  - TypeScript 型チェック
+  - ESLint
+  - Prettier フォーマット確認
+  - Vitest
+  - Vitest coverage
+  - Vite build
+  - Firefox 向けアドオン ZIP の artifact 作成
+- `v*` タグ push または手動実行:
+  - 上記の品質ゲート完了後、Firefox 向け listed アドオンを AMO へ送信
+
+AMO 送信には、GitHub の `addons-mozilla` environment に以下の Secrets を設定します。
+
+- `AMO_JWT_ISSUER`: addons.mozilla.org の JWT issuer
+- `AMO_JWT_SECRET`: addons.mozilla.org の JWT secret
+
+`web-ext sign` は `dist/` を再ビルドして AMO へ送信し、Vite で生成されたコードのレビュー用に `git archive` で作成した `web-ext-artifacts/source-code.zip` も添付します。listed アドオンのレビュー完了は CI 内で待たず、AMO 側の審査状態で確認します。
+
+Chrome / Edge 向けパッケージングは Phase 2 で追加します。追加時は Firefox と同じく、品質ゲート後にブラウザ別 packaging job を分け、生成物名と manifest 生成処理をブラウザ単位で分離します。
 
 ## 開発ステータス
 
