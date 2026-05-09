@@ -22,6 +22,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.config.json"
   },
   "dependencies": {
+    "web-ext": "^10.1.0",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
