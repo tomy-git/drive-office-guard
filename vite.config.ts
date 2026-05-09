@@ -9,11 +9,19 @@ const entries = {
   options: "src/options/options.ts",
 } as const;
 
-const entryName = process.env.BUILD_ENTRY as keyof typeof entries | undefined;
+type EntryName = keyof typeof entries;
 
-if (!entryName || !(entryName in entries)) {
+function isEntryName(value: string): value is EntryName {
+  return value in entries;
+}
+
+const buildEntry = process.env.BUILD_ENTRY;
+
+if (!buildEntry || !isEntryName(buildEntry)) {
   throw new Error(`BUILD_ENTRY must be one of: ${Object.keys(entries).join(", ")}`);
 }
+
+const entryName = buildEntry;
 
 export default defineConfig({
   build: {

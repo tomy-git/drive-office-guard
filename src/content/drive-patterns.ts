@@ -72,6 +72,8 @@ const ACTION_SETTING_KEY: Partial<Record<BlockedActionKind, keyof GuardSettings>
 };
 
 const MENU_ROLES = new Set(["menuitem", "option", "button"]);
+const OFFICE_FILE_KINDS = ["xlsx", "pptx", "docx"] as const;
+const BLOCKED_ACTION_KINDS = ["sheets", "slides", "docs", "new-tab"] as const;
 
 export function getSignalText(signal: DriveDomSignal): string {
   return [
@@ -116,9 +118,11 @@ export function getOfficeFileKind(signal: DriveDomSignal): OfficeFileKind | null
     }
   }
 
-  for (const [kind, patterns] of Object.entries(OFFICE_KIND_PATTERNS)) {
+  for (const kind of OFFICE_FILE_KINDS) {
+    const patterns = OFFICE_KIND_PATTERNS[kind];
+
     if (patterns.some((pattern) => pattern.test(text))) {
-      return kind as OfficeFileKind;
+      return kind;
     }
   }
 
@@ -131,16 +135,16 @@ export function matchesBlockedAction(
 ): BlockedActionKind | null {
   const text = getSignalText(signal);
 
-  for (const [action, patterns] of Object.entries(BLOCKED_ACTION_PATTERNS)) {
-    const blockedAction = action as BlockedActionKind;
-    const settingKey = ACTION_SETTING_KEY[blockedAction];
+  for (const action of BLOCKED_ACTION_KINDS) {
+    const patterns = BLOCKED_ACTION_PATTERNS[action];
+    const settingKey = ACTION_SETTING_KEY[action];
 
     if (settingKey && settings && !settings[settingKey]) {
       continue;
     }
 
     if (patterns.some((pattern) => pattern.test(text))) {
-      return blockedAction;
+      return action;
     }
   }
 

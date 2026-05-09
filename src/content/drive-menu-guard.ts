@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 
 import {
   DEFAULT_GUARD_SETTINGS,
+  isGuardSettings,
   readEffectiveSettings,
   type GuardSettings,
 } from "../shared/config";
@@ -15,10 +16,6 @@ import {
   SPEC_CHANGE_NOTICE,
   shouldDisableSignal,
 } from "./drive-patterns";
-
-type SettingsResponse = {
-  settings?: GuardSettings;
-};
 
 const DISABLED_DATA_KEY = "antiGoogleOfficeDisabled";
 const NOTICE_DATA_KEY = "antiGoogleOfficeNotice";
@@ -46,12 +43,14 @@ let globalEventBlockerInstalled = false;
 
 async function readSettings(): Promise<GuardSettings> {
   try {
-    const response = (await browser.runtime.sendMessage({
+    const response: unknown = await browser.runtime.sendMessage({
       type: "get-settings",
-    })) as SettingsResponse;
+    });
 
-    if (response?.settings) {
-      return response.settings;
+    const settings = parseSettingsResponse(response);
+
+    if (settings) {
+      return settings;
     }
   } catch {
     // Content script can still protect with safe defaults if background is waking.
@@ -62,6 +61,18 @@ async function readSettings(): Promise<GuardSettings> {
   } catch {
     return DEFAULT_GUARD_SETTINGS;
   }
+}
+
+function parseSettingsResponse(response: unknown): GuardSettings | null {
+  if (typeof response !== "object" || response === null || !("settings" in response)) {
+    return null;
+  }
+
+  if (isGuardSettings(response.settings)) {
+    return response.settings;
+  }
+
+  return null;
 }
 
 async function applyGuard(): Promise<void> {

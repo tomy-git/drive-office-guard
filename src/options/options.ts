@@ -57,10 +57,12 @@ async function loadOptions(): Promise<void> {
 }
 
 function readFormSettings(): GuardSettings {
-  return getConfigKeys().reduce<GuardSettings>((settings, key) => {
-    settings[key] = getInput(key).checked;
-    return settings;
-  }, {} as GuardSettings);
+  return {
+    blockSheets: getInput("blockSheets").checked,
+    blockSlides: getInput("blockSlides").checked,
+    blockDocs: getInput("blockDocs").checked,
+    hideDisabledLabel: getInput("hideDisabledLabel").checked,
+  };
 }
 
 function updateDirtyState(): void {

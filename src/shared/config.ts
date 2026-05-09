@@ -20,17 +20,17 @@ export const DEFAULT_GUARD_SETTINGS: GuardSettings = {
   hideDisabledLabel: false,
 };
 
-const CONFIG_KEYS: ConfigKey[] = [
+const CONFIG_KEYS = [
   "blockSheets",
   "blockSlides",
   "blockDocs",
   "hideDisabledLabel",
-];
+] as const satisfies readonly ConfigKey[];
 
 type RawConfig = Partial<Record<ConfigKey, unknown>>;
 
 export function isConfigKey(key: string): key is ConfigKey {
-  return (CONFIG_KEYS as string[]).includes(key);
+  return CONFIG_KEYS.some((configKey) => configKey === key);
 }
 
 export function getConfigKeys(): ConfigKey[] {
@@ -47,6 +47,14 @@ export function normalizeSettings(raw: RawConfig): Partial<GuardSettings> {
 
     return settings;
   }, {});
+}
+
+export function isGuardSettings(value: unknown): value is GuardSettings {
+  const settings = normalizeSettings(
+    typeof value === "object" && value !== null ? value : {},
+  );
+
+  return CONFIG_KEYS.every((key) => typeof settings[key] === "boolean");
 }
 
 export function mergeSettings(
@@ -67,7 +75,7 @@ export function mergeSettings(
 }
 
 export async function readEffectiveSettings(): Promise<ManagedConfigState> {
-  const syncRaw = await browser.storage.sync.get(CONFIG_KEYS);
+  const syncRaw = await browser.storage.sync.get(getConfigKeys());
   const managedRaw = await readManagedSettings();
 
   return mergeSettings(normalizeSettings(syncRaw), normalizeSettings(managedRaw));
@@ -88,7 +96,7 @@ export async function saveUserSettings(
 
 async function readManagedSettings(): Promise<RawConfig> {
   try {
-    return await browser.storage.managed.get(CONFIG_KEYS);
+    return await browser.storage.managed.get(getConfigKeys());
   } catch {
     return {};
   }

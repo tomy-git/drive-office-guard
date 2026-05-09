@@ -16,6 +16,7 @@ vi.mock("webextension-polyfill", () => ({
 
 import {
   DEFAULT_GUARD_SETTINGS,
+  isGuardSettings,
   mergeSettings,
   normalizeSettings,
 } from "../../src/shared/config";
@@ -48,5 +49,14 @@ describe("config", () => {
       },
       managedKeys: ["blockSlides"],
     });
+  });
+
+  it("全キーが boolean の場合だけ完全な設定値として扱う", () => {
+    expect(isGuardSettings(DEFAULT_GUARD_SETTINGS)).toBe(true);
+    expect(isGuardSettings({ ...DEFAULT_GUARD_SETTINGS, blockDocs: "true" })).toBe(
+      false,
+    );
+    expect(isGuardSettings({ blockSheets: true })).toBe(false);
+    expect(isGuardSettings(null)).toBe(false);
   });
 });
