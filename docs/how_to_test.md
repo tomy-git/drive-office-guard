@@ -98,6 +98,23 @@ npm run test:coverage
 npm run build
 ```
 
+Firefox 向けアドオン ZIP まで確認する場合は、以下を実行する。
+
+```bash
+npm run package:firefox
+```
+
+生成された `web-ext-artifacts/firefox-addon.zip` は GitHub Actions の `package-firefox` job と同じ出力である。CI では `pull_request` と `main` への push ごとに artifact として保存する。
+
+AMO への listed アドオン送信は、`v*` タグまたは手動実行の GitHub Actions でのみ行う。ローカルで同等の送信確認を行う場合は、AMO の JWT issuer/secret を `WEB_EXT_API_KEY` と `WEB_EXT_API_SECRET` に設定したうえで以下を実行する。
+
+```bash
+npm run package:source
+npm run publish:firefox:listed
+```
+
+`publish:firefox:listed` は `dist/` を再ビルドし、AMO レビュー用の `web-ext-artifacts/source-code.zip` を添付して送信する。
+
 ## テスト追加方針
 
 Drive UI の新しいメニュー構造や文言を確認した場合は、実装変更だけで済ませず、以下の順でテストを追加する。
