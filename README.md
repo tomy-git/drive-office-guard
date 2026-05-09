@@ -100,49 +100,50 @@ Chrome Enterprise は Phase 2 で `managed_schema.json` を含む Manifest V3 �
 npm install
 ```
 
-検証:
+ローカル事前確認:
 
 ```bash
-npm run typecheck
-npm run lint
-npm run format
-npm test
-npm run test:coverage
-npm run build
-npm run build:chrome
+npm run preflight
 ```
 
-Firefox 向け配布 ZIP の作成:
+`preflight` は、SPDX ヘッダー確認、型チェック、lint、フォーマット確認、単体テスト、カバレッジ、Firefox / Chrome の build と ZIP 作成をまとめて実行します。Pull Request 作成前やリリース候補の確認では、原則としてこのコマンドを実行します。
 
-```bash
-npm run package:firefox
-```
+個別に確認したい場合は、以下を使用します。
 
-生成物は `web-ext-artifacts/firefox-addon.zip` に出力されます。
-
-Chrome 向け配布 ZIP の作成:
-
-```bash
-npm run package:chrome
-```
-
-生成物は `web-ext-artifacts/chrome-extension.zip` に出力されます。
+| 目的                        | コマンド                  | 主な出力                                 |
+| --------------------------- | ------------------------- | ---------------------------------------- |
+| Firefox 向け build          | `npm run build`           | `dist/firefox/`                          |
+| Chrome 向け build           | `npm run build:chrome`    | `dist/chrome/`                           |
+| Firefox 向け ZIP 作成       | `npm run package:firefox` | `web-ext-artifacts/firefox-addon.zip`    |
+| Chrome 向け ZIP 作成        | `npm run package:chrome`  | `web-ext-artifacts/chrome-extension.zip` |
+| 型チェック                  | `npm run typecheck`       | TypeScript の検証結果                    |
+| lint                        | `npm run lint`            | ESLint の検証結果                        |
+| フォーマット確認            | `npm run format`          | Prettier の検証結果                      |
+| 単体テスト                  | `npm test`                | Vitest の実行結果                        |
+| 単体テスト + カバレッジ     | `npm run test:coverage`   | Vitest coverage の実行結果               |
+| SPDX ライセンスヘッダー確認 | `npm run license:check`   | SPDX ヘッダーの検証結果                  |
 
 単体テストの対象範囲と追加方針は [テスト実施手順](./docs/how_to_test.md) を参照してください。
 
 Firefox での手動確認:
 
-1. `npm run build` を実行する。
-2. Firefox で `about:debugging#/runtime/this-firefox` を開く。
-3. `dist/firefox/manifest.json` を一時的なアドオンとして読み込む。
-4. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
+```bash
+npm run build
+```
+
+1. Firefox で `about:debugging#/runtime/this-firefox` を開く。
+2. `dist/firefox/manifest.json` を一時的なアドオンとして読み込む。
+3. Google Drive 上の Office ファイルと `docs.google.com` の対象 URL を確認する。
 
 Chrome での手動確認:
 
-1. `npm run build:chrome` を実行する。
-2. Chrome で `chrome://extensions` を開く。
-3. デベロッパーモードを有効化し、`dist/chrome/` を「パッケージ化されていない拡張機能」として読み込む。
-4. Google Drive 上の Office ファイル、`docs.google.com` の対象 URL、Options Page の設定反映を確認する。
+```bash
+npm run build:chrome
+```
+
+1. Chrome で `chrome://extensions` を開く。
+2. デベロッパーモードを有効化し、`dist/chrome/` を「パッケージ化されていない拡張機能」として読み込む。ディレクトリごと読み込む必要がある。
+3. Google Drive 上の Office ファイル、`docs.google.com` の対象 URL、Options Page の設定反映を確認する。
 
 ## CI/CD
 
