@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import globals from "globals";

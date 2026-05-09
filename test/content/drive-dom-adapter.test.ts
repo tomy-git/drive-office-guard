@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 

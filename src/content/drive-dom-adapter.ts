@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import {
   type DriveDomSignal,
   MAX_MENU_CANDIDATES,

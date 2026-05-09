@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DISABLED_SUFFIX, SPEC_CHANGE_NOTICE } from "../../src/content/drive-patterns";

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+
 import { copyFileSync, cpSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+
 # Office Breakage Blocker for Google Drive 設計方針書
 
 ## 概要
