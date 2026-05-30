@@ -56,8 +56,14 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build extension
-        run: npm run build
+      - name: Run coverage
+        run: npm run test:coverage
+
+      - name: Build Firefox
+        run: npm run build:firefox
+
+      - name: Build Chrome
+        run: npm run build:chrome
 
       - name: Check manifest version
         run: npm run check:manifest-version
@@ -68,12 +74,15 @@ jobs:
       - name: Package Firefox extension
         run: npm run package:firefox
 
+      - name: Package Chrome extension
+        run: npm run package:chrome
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
           gh release create "${GITHUB_REF_NAME}" \
-            "web-ext-artifacts/drive-office-guard-${VERSION}.zip" \
+            "web-ext-artifacts/firefox-addon.zip" \
+            "web-ext-artifacts/chrome-extension.zip" \
             --title "${GITHUB_REF_NAME}" \
             --notes "Release ${GITHUB_REF_NAME}"

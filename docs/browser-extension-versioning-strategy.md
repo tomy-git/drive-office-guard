@@ -117,12 +117,12 @@ v1.0.0
 
 ## 方針
 
-`dist/manifest.json` を直接編集しないでください。
+`dist/firefox/manifest.json` と `dist/chrome/manifest.json` を直接編集しないでください。
 
 代わりに:
 
 1. `package.json` からバージョンを読み取る
-2. ビルド時に `dist/manifest.json` を生成する
+2. ビルド時にブラウザ別の `dist/<target>/manifest.json` を生成する
 
 ---
 
@@ -134,8 +134,8 @@ v1.0.0
 manifest.firefox.json
 ```
 
-`manifest.firefox.json` は Firefox 用ベース manifest として管理し、`version` は定義しません。
-`version` は build 時に `package.json` から `dist/manifest.json` へ注入します。
+`manifest.firefox.json` と `manifest.chrome.json` はブラウザ別のベース manifest として管理し、`version` は定義しません。
+`version` は build 時に `package.json` から `dist/firefox/manifest.json` / `dist/chrome/manifest.json` へ注入します。
 
 例:
 
@@ -160,15 +160,15 @@ scripts/copy-extension-assets.mjs
 実装方針:
 
 - `package.json` を読み込む
-- `manifest.firefox.json` を読み込む
+- 対象ブラウザに応じて `manifest.firefox.json` または `manifest.chrome.json` を読み込む
 - `manifest.version` に `package.json` の `version` を設定する
-- `dist/manifest.json` を生成する
-- HTML と icons を `dist/` へコピーする
+- `dist/<target>/manifest.json` を生成する
+- HTML と icons を `dist/<target>/` へコピーする
 
 `scripts/verify-manifest-version.mjs` は、以下を検証します。
 
-- `dist/manifest.json` の `version` が `package.json` と一致する
-- `manifest.firefox.json` に `version` キーが存在しない
+- `dist/firefox/manifest.json` と `dist/chrome/manifest.json` の `version` が `package.json` と一致する
+- `manifest.firefox.json` と `manifest.chrome.json` に `version` キーが存在しない
 
 ---
 
@@ -177,10 +177,13 @@ scripts/copy-extension-assets.mjs
 ```json
 {
   "scripts": {
-    "build": "npm run clean && npm run build:background && npm run build:content && npm run build:options && npm run build:blocked && npm run copy:assets",
-    "check:manifest-version": "node scripts/verify-manifest-version.mjs",
-    "lint:ext": "web-ext lint --source-dir dist",
-    "package:firefox": "npm run build && web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --filename drive-office-guard-${npm_package_version}.zip --overwrite-dest",
+    "build": "npm run build:firefox",
+    "build:firefox": "node scripts/build-extension.mjs firefox",
+    "build:chrome": "node scripts/build-extension.mjs chrome",
+    "check:manifest-version": "npm run check:manifest-version:firefox && npm run check:manifest-version:chrome",
+    "lint:ext": "web-ext lint --source-dir dist/firefox",
+    "package:firefox": "npm run build:firefox && web-ext build --source-dir dist/firefox --artifacts-dir web-ext-artifacts --filename firefox-addon.zip --overwrite-dest",
+    "package:chrome": "npm run build:chrome && web-ext build --source-dir dist/chrome --artifacts-dir web-ext-artifacts --filename chrome-extension.zip --overwrite-dest",
     "release:patch": "npm version patch",
     "release:minor": "npm version minor",
     "release:major": "npm version major"
@@ -342,13 +345,15 @@ GitHubリリース作成
 推奨:
 
 ```text
-extension-name-X.Y.Z.zip
+firefox-addon.zip
+chrome-extension.zip
 ```
 
 例:
 
 ```text
-drive-office-guard-0.1.1.zip
+web-ext-artifacts/firefox-addon.zip
+web-ext-artifacts/chrome-extension.zip
 ```
 
 ---
@@ -457,8 +462,8 @@ GitHub Actionsが以下を自動で処理します:
 対象タスク:
 
 - [x] `package.json` を唯一の正規バージョン情報源にする。
-- [x] build 時に `dist/manifest.json` の `version` を `package.json` から注入する。
-- [x] `dist/manifest.json` は生成物、`manifest.firefox.json` は Firefox 用ベース manifest として扱う。
+- [x] build 時に `dist/firefox/manifest.json` / `dist/chrome/manifest.json` の `version` を `package.json` から注入する。
+- [x] `dist/<target>/manifest.json` は生成物、`manifest.firefox.json` / `manifest.chrome.json` はブラウザ別ベース manifest として扱う。
 - [x] `lint:ext`、`package:firefox`、`release:patch`、`release:minor`、`release:major` scripts を追加する。
 - [x] `.gitignore` に ZIP 生成物の無視方針を反映する。
 - [x] 既存 CI に version 重複チェック、typecheck、lint、format、build、manifest version 検証、web-ext lint を追加する。
@@ -471,10 +476,10 @@ GitHub Actionsが以下を自動で処理します:
 
 判断:
 
-- `manifest.firefox.json` から固定 `version` を削除し、Firefox 用ベース manifest として維持する。
-- `scripts/copy-extension-assets.mjs` で `package.json` と `manifest.firefox.json` を読み込み、`dist/manifest.json` 生成時に `package.json` の `version` を注入する。
-- `scripts/verify-manifest-version.mjs` を追加し、ローカル検証、CI、release workflow の共通チェックとして使用する。`dist/manifest.json` と `package.json` の version 一致に加え、`manifest.firefox.json` に `version` キーが存在しないことも検証する。
-- Firefox 用 ZIP は `npm run build && web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --filename drive-office-guard-${npm_package_version}.zip --overwrite-dest` で生成し、stale な `dist/` を ZIP 化しない。
+- `manifest.firefox.json` / `manifest.chrome.json` から固定 `version` を削除し、ブラウザ別ベース manifest として維持する。
+- `scripts/copy-extension-assets.mjs` で `package.json` と対象ブラウザのベース manifest を読み込み、`dist/<target>/manifest.json` 生成時に `package.json` の `version` を注入する。
+- `scripts/verify-manifest-version.mjs` を追加し、ローカル検証、CI、release workflow の共通チェックとして使用する。`dist/<target>/manifest.json` と `package.json` の version 一致に加え、ベース manifest に `version` キーが存在しないことも検証する。
+- Firefox 用 ZIP は `npm run package:firefox`、Chrome 用 ZIP は `npm run package:chrome` で生成し、stale な `dist/` を ZIP 化しない。
 - GitHub Release 作成は tag push `v*` のみをトリガーにし、`gh release create` で生成 ZIP を添付する。
 - `verify-manifest-version` の失敗系は、CLI を一時プロジェクトに対して実行する Vitest で固定化する。
 - 本ドキュメントの manifest 生成方針は、一般例ではなく本リポジトリの `manifest.firefox.json` / `scripts/copy-extension-assets.mjs` 構成に合わせる。
@@ -486,11 +491,13 @@ GitHub Actionsが以下を自動で処理します:
 | `npm run typecheck`              | OK   | app/test/config の TypeScript 型チェックが成功。                                                                            |
 | `npm run lint`                   | OK   | ESLint が成功。                                                                                                             |
 | `npm run format`                 | OK   | Prettier チェックが成功。                                                                                                   |
-| `npm test`                       | OK   | 6 files / 31 tests passed。`manifest.firefox.json` の `version` 再追加と `dist/manifest.json` 不一致の失敗系を確認。        |
-| `npm run build`                  | OK   | `dist/manifest.json` を生成。                                                                                               |
-| `npm run check:manifest-version` | OK   | `dist/manifest.json` と `package.json` が `0.1.0` で一致し、`manifest.firefox.json` に `version` がないことを確認。         |
+| `npm test`                       | OK   | 7 files / 35 tests passed。ベース manifest の `version` 再追加と `dist/<target>/manifest.json` 不一致の失敗系を確認。       |
+| `npm run build:firefox`          | OK   | `dist/firefox/manifest.json` を生成。                                                                                       |
+| `npm run build:chrome`           | OK   | `dist/chrome/manifest.json` と `managed_schema.json` を生成。                                                               |
+| `npm run check:manifest-version` | OK   | Firefox / Chrome の manifest version が `package.json` と一致し、ベース manifest に `version` がないことを確認。            |
 | `npm run lint:ext`               | OK   | exit 0。Firefox Android の `strict_min_version` と `data_collection_permissions` 組み合わせに関する既存 manifest 警告あり。 |
-| `npm run package:firefox`        | OK   | build を内包して実行し、`web-ext-artifacts/drive-office-guard-0.1.0.zip` を再生成。                                         |
+| `npm run package:firefox`        | OK   | build を内包して実行し、`web-ext-artifacts/firefox-addon.zip` を再生成。                                                    |
+| `npm run package:chrome`         | OK   | build を内包して実行し、`web-ext-artifacts/chrome-extension.zip` を再生成。                                                 |
 | `npm run license:check`          | OK   | SPDX ヘッダー確認が成功。                                                                                                   |
 
 残課題:

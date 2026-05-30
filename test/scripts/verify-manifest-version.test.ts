@@ -16,31 +16,45 @@ const tempRoots: string[] = [];
 function createProject(files: {
   packageVersion?: string;
   manifestVersion?: string;
-  firefoxManifest?: Record<string, unknown>;
+  sourceManifest?: Record<string, unknown>;
+  target?: "firefox" | "chrome";
 }) {
+  const target = files.target ?? "firefox";
   const projectRoot = mkdtempSync(resolve(tmpdir(), "drive-office-guard-version-"));
   tempRoots.push(projectRoot);
 
-  mkdirSync(resolve(projectRoot, "dist"));
+  mkdirSync(resolve(projectRoot, "dist", target), { recursive: true });
   writeFileSync(
     resolve(projectRoot, "package.json"),
     JSON.stringify({ version: files.packageVersion ?? "1.2.3" }),
   );
   writeFileSync(
-    resolve(projectRoot, "dist/manifest.json"),
+    resolve(projectRoot, "dist", target, "manifest.json"),
     JSON.stringify({ version: files.manifestVersion ?? "1.2.3" }),
   );
   writeFileSync(
     resolve(projectRoot, "manifest.firefox.json"),
-    JSON.stringify(files.firefoxManifest ?? { manifest_version: 3 }),
+    JSON.stringify(
+      target === "firefox"
+        ? (files.sourceManifest ?? { manifest_version: 3 })
+        : { manifest_version: 3 },
+    ),
+  );
+  writeFileSync(
+    resolve(projectRoot, "manifest.chrome.json"),
+    JSON.stringify(
+      target === "chrome"
+        ? (files.sourceManifest ?? { manifest_version: 3 })
+        : { manifest_version: 3 },
+    ),
   );
 
   return projectRoot;
 }
 
-function runVerifier(projectRoot: string) {
+function runVerifier(projectRoot: string, target = "firefox") {
   return () =>
-    execFileSync(process.execPath, [scriptPath], {
+    execFileSync(process.execPath, [scriptPath, target], {
       env: {
         ...process.env,
         PROJECT_ROOT: projectRoot,
@@ -64,7 +78,7 @@ describe("verify-manifest-version", () => {
 
   it("manifest.firefox.json に version がある場合は失敗する", () => {
     const projectRoot = createProject({
-      firefoxManifest: { manifest_version: 3, version: "1.2.3" },
+      sourceManifest: { manifest_version: 3, version: "1.2.3" },
     });
 
     expect(runVerifier(projectRoot)).toThrow(
@@ -79,7 +93,24 @@ describe("verify-manifest-version", () => {
     });
 
     expect(runVerifier(projectRoot)).toThrow(
-      /dist\/manifest\.json version \(1\.2\.4\) does not match package\.json version \(1\.2\.3\)/,
+      /dist\/firefox\/manifest\.json version \(1\.2\.4\) does not match package\.json version \(1\.2\.3\)/,
+    );
+  });
+
+  it("Chrome manifest も package.json の version と一致すれば成功する", () => {
+    const projectRoot = createProject({ target: "chrome" });
+
+    expect(runVerifier(projectRoot, "chrome")).not.toThrow();
+  });
+
+  it("manifest.chrome.json に version がある場合は失敗する", () => {
+    const projectRoot = createProject({
+      sourceManifest: { manifest_version: 3, version: "1.2.3" },
+      target: "chrome",
+    });
+
+    expect(runVerifier(projectRoot, "chrome")).toThrow(
+      /manifest\.chrome\.json must not define version/,
     );
   });
 });

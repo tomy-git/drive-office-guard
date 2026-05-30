@@ -18,30 +18,34 @@ if (!(target in manifestByTarget)) {
 const distDirectory = resolve(import.meta.dirname, "..", "dist", target);
 
 const copies = [
-  ["src/pages/blocked.html", "dist/blocked.html"],
-  ["src/pages/options.html", "dist/options.html"],
+  ["src/pages/blocked.html", "blocked.html"],
+  ["src/pages/options.html", "options.html"],
 ];
+
+if (target === "chrome") {
+  copies.push(["managed_schema.json", "managed_schema.json"]);
+}
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(
   readFileSync(resolve(projectRoot, "package.json"), "utf8"),
 );
-const firefoxManifest = JSON.parse(
-  readFileSync(resolve(projectRoot, "manifest.firefox.json"), "utf8"),
+const manifest = JSON.parse(
+  readFileSync(resolve(projectRoot, manifestByTarget[target]), "utf8"),
 );
 
-firefoxManifest.version = packageJson.version;
+manifest.version = packageJson.version;
 
-const manifestDestination = resolve(projectRoot, "dist/manifest.json");
+const manifestDestination = resolve(distDirectory, "manifest.json");
 
 mkdirSync(dirname(manifestDestination), {
   recursive: true,
 });
 
-writeFileSync(manifestDestination, `${JSON.stringify(firefoxManifest, null, 2)}\n`);
+writeFileSync(manifestDestination, `${JSON.stringify(manifest, null, 2)}\n`);
 
 for (const [from, to] of copies) {
-  const destination = resolve(projectRoot, to);
+  const destination = resolve(distDirectory, to);
 
   mkdirSync(dirname(destination), {
     recursive: true,
@@ -51,6 +55,6 @@ for (const [from, to] of copies) {
 }
 
 /* icons copy */
-cpSync(resolve(projectRoot, "public/icons"), resolve(projectRoot, "dist/icons"), {
+cpSync(resolve(projectRoot, "public/icons"), resolve(distDirectory, "icons"), {
   recursive: true,
 });
