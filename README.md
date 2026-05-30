@@ -170,7 +170,7 @@ Chrome 向けパッケージングは Phase 2 で追加済みです。Firefox �
 
 ## バージョンとリリース
 
-`package.json` の `version` を唯一の正規バージョン情報源とします。`manifest.firefox.json` には `version` を定義せず、`npm run build` 時に `dist/manifest.json` へ `package.json` の `version` を注入します。
+`package.json` の `version` を唯一の正規バージョン情報源とします。`manifest.firefox.json` と `manifest.chrome.json` には `version` を定義せず、`npm run build:firefox` / `npm run build:chrome` 時に `dist/firefox/manifest.json` / `dist/chrome/manifest.json` へ `package.json` の `version` を注入します。
 
 現在は GitHub Release と Firefox 用 ZIP 生成までを自動化しています。Firefox Add-ons、Chrome Web Store、Microsoft Edge Add-ons への自動アップロードは未対応です。各アドオンストアへの提出は、当面は手動で行います。
 
@@ -198,7 +198,7 @@ Chrome 向けパッケージングは Phase 2 で追加済みです。Firefox �
    npm run build
    ```
 
-   Firefox で `about:debugging#/runtime/this-firefox` を開き、`dist/manifest.json` を一時的なアドオンとして読み込みます。
+   Firefox で `about:debugging#/runtime/this-firefox` を開き、`dist/firefox/manifest.json` を一時的なアドオンとして読み込みます。
 
    確認観点:
    - Google Drive 上の Office ファイルメニューが制限される
